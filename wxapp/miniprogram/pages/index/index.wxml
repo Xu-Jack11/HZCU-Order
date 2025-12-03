@@ -1,27 +1,61 @@
 <!--index.wxml-->
-<scroll-view class="scrollarea" scroll-y type="list">
-  <view class="container">
-    <view class="userinfo">
-      <block wx:if="{{canIUseNicknameComp && !hasUserInfo}}">
-        <button class="avatar-wrapper" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
-          <image class="avatar" src="{{userInfo.avatarUrl}}"></image>
-        </button>
-        <view class="nickname-wrapper">
-          <text class="nickname-label">昵称</text>
-          <input type="nickname" class="nickname-input" placeholder="请输入昵称" bind:change="onInputChange" />
-        </view>
-      </block>
-      <block wx:elif="{{!hasUserInfo}}">
-        <button wx:if="{{canIUseGetUserProfile}}" bindtap="getUserProfile"> 获取头像昵称 </button>
-        <view wx:else> 请使用2.10.4及以上版本基础库 </view>
-      </block>
-      <block wx:else>
-        <image bindtap="bindViewTap" class="userinfo-avatar" src="{{userInfo.avatarUrl}}" mode="cover"></image>
-        <text class="userinfo-nickname">{{userInfo.nickName}}</text>
-      </block>
-    </view>
-    <view class="usermotto">
-      <text class="user-motto">{{motto}}</text>
+<view class="container">
+  <!-- 顶部地址栏 -->
+  <view class="header">
+    <view class="location" bindtap="chooseLocation">
+      <image class="location-icon" src="/images/location.png" mode="aspectFit"></image>
+      <text class="location-text">{{location}}</text>
+      <image class="arrow-icon" src="/images/arrow-down.png" mode="aspectFit"></image>
     </view>
   </view>
-</scroll-view>
+
+  <!-- 搜索框 -->
+  <view class="search-bar">
+    <view class="search-input-wrap">
+      <image class="search-icon" src="/images/search.png" mode="aspectFit"></image>
+      <input class="search-input" placeholder="今天吃点啥" placeholder-class="placeholder" bindinput="onSearchInput" value="{{searchKeyword}}" />
+    </view>
+    <view class="search-btn" bindtap="onSearch">搜索</view>
+  </view>
+
+  <!-- 分类导航 -->
+  <scroll-view class="category-scroll" scroll-x>
+    <view class="category-list">
+      <view class="category-item" wx:for="{{categories}}" wx:key="id" bindtap="onCategoryTap" data-id="{{item.id}}">
+        <image class="category-icon" src="{{item.icon}}" mode="aspectFit"></image>
+        <text class="category-name">{{item.name}}</text>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- 筛选标签 -->
+  <view class="filter-tabs">
+    <view class="filter-tab {{activeTab === 'nearby' ? 'active' : ''}}" bindtap="onTabChange" data-tab="nearby">附近推荐</view>
+    <view class="filter-tab {{activeTab === 'discover' ? 'active' : ''}}" bindtap="onTabChange" data-tab="discover">发现好菜</view>
+  </view>
+
+  <!-- 商家列表 -->
+  <scroll-view class="shop-list" scroll-y bindscrolltolower="loadMore">
+    <view class="shop-item" wx:for="{{shopList}}" wx:key="id" bindtap="goToShop" data-id="{{item.id}}">
+      <image class="shop-logo" src="{{item.logo}}" mode="aspectFill"></image>
+      <view class="shop-info">
+        <view class="shop-name">{{item.name}}</view>
+        <view class="shop-meta">
+          <text class="shop-rating">{{item.rating}}分</text>
+          <text class="shop-sales">月售{{item.monthlySales}}</text>
+          <text class="shop-time">{{item.deliveryTime}}分钟</text>
+          <text class="shop-distance">{{item.distance}}</text>
+        </view>
+        <view class="shop-delivery">
+          <text wx:if="{{item.startPrice}}">起送¥{{item.startPrice}}</text>
+          <text wx:if="{{item.deliveryFee}}">配送¥{{item.deliveryFee}}</text>
+        </view>
+        <view class="shop-tags">
+          <text class="tag" wx:for="{{item.tags}}" wx:key="*this" wx:for-item="tag">{{tag}}</text>
+        </view>
+      </view>
+    </view>
+    <view class="loading" wx:if="{{loading}}">加载中...</view>
+    <view class="no-more" wx:if="{{noMore}}">没有更多了</view>
+  </scroll-view>
+</view>

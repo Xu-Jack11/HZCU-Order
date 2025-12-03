@@ -1,0 +1,75 @@
+<!--checkout.wxml-->
+<view class="container">
+  <!-- 收货地址 -->
+  <view class="address-section" bindtap="chooseAddress">
+    <view class="address-content" wx:if="{{address}}">
+      <view class="address-info">
+        <text class="receiver">{{address.name}} {{address.phone}}</text>
+        <text class="address-detail">{{address.province}}{{address.city}}{{address.district}}{{address.detail}}</text>
+      </view>
+    </view>
+    <view class="address-content empty" wx:else>
+      <image class="add-icon" src="/images/menu/address.png" mode="aspectFit"></image>
+      <text>请选择收货地址</text>
+    </view>
+    <image class="arrow-right" src="/images/arrow-right.png" mode="aspectFit"></image>
+  </view>
+
+  <!-- 商家信息 -->
+  <view class="shop-section">
+    <image class="shop-logo" src="{{shopInfo.logo}}" mode="aspectFill"></image>
+    <text class="shop-name">{{shopInfo.name}}</text>
+  </view>
+
+  <!-- 商品列表 -->
+  <view class="goods-section">
+    <view class="goods-item" wx:for="{{cartList}}" wx:key="id">
+      <image class="goods-image" src="{{item.image}}" mode="aspectFill"></image>
+      <view class="goods-info">
+        <text class="goods-name">{{item.name}}</text>
+        <text class="goods-count">x{{item.count}}</text>
+      </view>
+      <text class="goods-price">¥{{item.price}}</text>
+    </view>
+  </view>
+
+  <!-- 配送信息 -->
+  <view class="delivery-section">
+    <view class="delivery-item">
+      <text class="label">配送时间</text>
+      <view class="value" bindtap="chooseTime">
+        <text>{{deliveryTime || '立即配送'}}</text>
+        <image class="arrow-right" src="/images/arrow-right.png" mode="aspectFit"></image>
+      </view>
+    </view>
+    <view class="delivery-item">
+      <text class="label">备注</text>
+      <input class="remark-input" placeholder="口味、偏好等" bindinput="onRemarkInput" value="{{remark}}" />
+    </view>
+  </view>
+
+  <!-- 价格明细 -->
+  <view class="price-section">
+    <view class="price-item">
+      <text>商品金额</text>
+      <text>¥{{totalPrice}}</text>
+    </view>
+    <view class="price-item">
+      <text>配送费</text>
+      <text>¥{{shopInfo.deliveryFee}}</text>
+    </view>
+    <view class="price-item" wx:if="{{couponDiscount > 0}}">
+      <text>优惠券</text>
+      <text class="discount">-¥{{couponDiscount}}</text>
+    </view>
+  </view>
+
+  <!-- 底部支付栏 -->
+  <view class="pay-bar">
+    <view class="pay-price">
+      <text class="label">合计：</text>
+      <text class="price">¥{{finalPrice}}</text>
+    </view>
+    <view class="pay-btn" bindtap="submitOrder">提交订单</view>
+  </view>
+</view>

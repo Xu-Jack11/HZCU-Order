@@ -1,54 +1,147 @@
 // index.ts
-// 获取应用实例
-const app = getApp<IAppOption>()
-const defaultAvatarUrl = 'https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia07jQodd2FJGIYQfG0LAJGFxM4FbnQP6yfMxBgJ0F3YRqJCJ1aPAK2dQagdusBZg/0'
+// 首页 - 商家列表
 
-Component({
+Page({
   data: {
-    motto: 'Hello World',
-    userInfo: {
-      avatarUrl: defaultAvatarUrl,
-      nickName: '',
-    },
-    hasUserInfo: false,
-    canIUseGetUserProfile: wx.canIUse('getUserProfile'),
-    canIUseNicknameComp: wx.canIUse('input.type.nickname'),
+    location: '浙大城市学院（南校区）',
+    searchKeyword: '',
+    activeTab: 'nearby',
+    loading: false,
+    noMore: false,
+    page: 1,
+    categories: [
+      { id: 1, name: '汉堡披萨', icon: '/images/category/burger.png' },
+      { id: 2, name: '炸鸡薯条', icon: '/images/category/chicken.png' },
+      { id: 3, name: '水果', icon: '/images/category/fruit.png' },
+      { id: 4, name: '甜品饮料', icon: '/images/category/drink.png' },
+      { id: 5, name: '中餐', icon: '/images/category/chinese.png' },
+      { id: 6, name: '面食', icon: '/images/category/noodle.png' },
+    ],
+    shopList: [
+      {
+        id: 1,
+        name: '肯德基（城院店）',
+        logo: '/images/shops/kfc.png',
+        rating: 4.8,
+        monthlySales: 719,
+        deliveryTime: 53,
+        distance: '1.8km',
+        startPrice: 20,
+        deliveryFee: 1,
+        tags: ['20减8', '30减12']
+      },
+      {
+        id: 2,
+        name: '兰州拉面',
+        logo: '/images/shops/lamian.png',
+        rating: 4.7,
+        monthlySales: 1750,
+        deliveryTime: 49,
+        distance: '2.4km',
+        startPrice: 0,
+        deliveryFee: 2,
+        tags: ['45减30', '75减45']
+      },
+      {
+        id: 3,
+        name: '库迪咖啡（城院南校区店）',
+        logo: '/images/shops/cotti.png',
+        rating: 4.8,
+        monthlySales: 1613,
+        deliveryTime: 57,
+        distance: '1.7km',
+        startPrice: 0,
+        deliveryFee: 3,
+        tags: ['20减12', '35减19']
+      },
+    ]
   },
-  methods: {
-    // 事件处理函数
-    bindViewTap() {
-      wx.navigateTo({
-        url: '../logs/logs',
-      })
-    },
-    onChooseAvatar(e: any) {
-      const { avatarUrl } = e.detail
-      const { nickName } = this.data.userInfo
-      this.setData({
-        "userInfo.avatarUrl": avatarUrl,
-        hasUserInfo: nickName && avatarUrl && avatarUrl !== defaultAvatarUrl,
-      })
-    },
-    onInputChange(e: any) {
-      const nickName = e.detail.value
-      const { avatarUrl } = this.data.userInfo
-      this.setData({
-        "userInfo.nickName": nickName,
-        hasUserInfo: nickName && avatarUrl && avatarUrl !== defaultAvatarUrl,
-      })
-    },
-    getUserProfile() {
-      // 推荐使用wx.getUserProfile获取用户信息，开发者每次通过该接口获取用户个人信息均需用户确认，开发者妥善保管用户快速填写的头像昵称，避免重复弹窗
-      wx.getUserProfile({
-        desc: '展示用户信息', // 声明获取用户个人信息后的用途，后续会展示在弹窗中，请谨慎填写
-        success: (res) => {
-          console.log(res)
-          this.setData({
-            userInfo: res.userInfo,
-            hasUserInfo: true
-          })
-        }
-      })
-    },
+
+  onLoad() {
+    this.loadShopList();
   },
-})
+
+  onShow() {
+    // 页面显示时刷新
+  },
+
+  // 选择地址
+  chooseLocation() {
+    wx.chooseLocation({
+      success: (res) => {
+        this.setData({
+          location: res.name || res.address
+        });
+      }
+    });
+  },
+
+  // 搜索输入
+  onSearchInput(e: any) {
+    this.setData({
+      searchKeyword: e.detail.value
+    });
+  },
+
+  // 搜索
+  onSearch() {
+    const keyword = this.data.searchKeyword;
+    if (keyword) {
+      // 执行搜索逻辑
+      this.loadShopList(keyword);
+    }
+  },
+
+  // 分类点击
+  onCategoryTap(e: any) {
+    const categoryId = e.currentTarget.dataset.id;
+    wx.navigateTo({
+      url: `/pages/category/category?id=${categoryId}`
+    });
+  },
+
+  // 筛选标签切换
+  onTabChange(e: any) {
+    const tab = e.currentTarget.dataset.tab;
+    this.setData({
+      activeTab: tab,
+      page: 1,
+      shopList: [],
+      noMore: false
+    });
+    this.loadShopList();
+  },
+
+  // 加载商家列表
+  loadShopList(keyword?: string) {
+    if (this.data.loading || this.data.noMore) return;
+    
+    this.setData({ loading: true });
+    
+    // 模拟API请求
+    setTimeout(() => {
+      // 这里应该调用实际的API
+      this.setData({
+        loading: false,
+        // 实际项目中这里会合并新数据
+      });
+    }, 500);
+  },
+
+  // 加载更多
+  loadMore() {
+    if (this.data.loading || this.data.noMore) return;
+    this.setData({
+      page: this.data.page + 1
+    });
+    this.loadShopList();
+  },
+
+  // 跳转到商家详情
+  goToShop(e: any) {
+    const shopId = e.currentTarget.dataset.id;
+    wx.navigateTo({
+      url: `/pages/shop/shop?id=${shopId}`
+    });
+  }
+});
