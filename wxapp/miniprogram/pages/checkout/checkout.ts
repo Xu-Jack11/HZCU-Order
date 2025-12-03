@@ -1,12 +1,18 @@
 // checkout.ts
 // 结算页面
 
-// 打包费常量
+// 常量定义
 const PACKING_FEE = 2;
+const DINING_MODES = {
+  DINE_IN: 'dine-in' as const,
+  TAKEAWAY: 'takeaway' as const
+};
+const DINING_MODE_LABELS = ['堂食', '打包'];
+const PICKUP_TIMES = ['立即取餐', '12:00-13:00', '13:00-14:00', '18:00-19:00', '19:00-20:00'];
 
 Page({
   data: {
-    diningMode: 'dine-in' as 'dine-in' | 'takeaway',
+    diningMode: DINING_MODES.DINE_IN as 'dine-in' | 'takeaway',
     tableNo: '',
     shopInfo: {} as any,
     cartList: [] as any[],
@@ -23,9 +29,14 @@ Page({
     this.loadCartData();
   },
 
+  // 计算打包费
+  getPackingFee(diningMode: string): number {
+    return diningMode === DINING_MODES.TAKEAWAY ? PACKING_FEE : 0;
+  },
+
   // 计算总价
   calculateFinalPrice() {
-    const packingFee = this.data.diningMode === 'takeaway' ? PACKING_FEE : 0;
+    const packingFee = this.getPackingFee(this.data.diningMode);
     const finalPrice = this.data.totalPrice + packingFee - this.data.couponDiscount;
     this.setData({
       packingFee,
@@ -51,11 +62,11 @@ Page({
   // 选择就餐方式
   chooseDiningMode() {
     wx.showActionSheet({
-      itemList: ['堂食', '打包'],
+      itemList: DINING_MODE_LABELS,
       success: (res) => {
-        const modes: Array<'dine-in' | 'takeaway'> = ['dine-in', 'takeaway'];
+        const diningMode = res.tapIndex === 0 ? DINING_MODES.DINE_IN : DINING_MODES.TAKEAWAY;
         this.setData({
-          diningMode: modes[res.tapIndex]
+          diningMode
         }, () => {
           this.calculateFinalPrice();
         });
@@ -73,11 +84,10 @@ Page({
   // 选择取餐时间
   choosePickupTime() {
     wx.showActionSheet({
-      itemList: ['立即取餐', '12:00-13:00', '13:00-14:00', '18:00-19:00', '19:00-20:00'],
+      itemList: PICKUP_TIMES,
       success: (res) => {
-        const times = ['立即取餐', '12:00-13:00', '13:00-14:00', '18:00-19:00', '19:00-20:00'];
         this.setData({
-          pickupTime: times[res.tapIndex]
+          pickupTime: PICKUP_TIMES[res.tapIndex]
         });
       }
     });
@@ -92,7 +102,7 @@ Page({
 
   // 提交订单
   submitOrder() {
-    if (this.data.diningMode === 'dine-in' && !this.data.tableNo) {
+    if (this.data.diningMode === DINING_MODES.DINE_IN && !this.data.tableNo) {
       wx.showToast({
         title: '请输入桌号',
         icon: 'none'

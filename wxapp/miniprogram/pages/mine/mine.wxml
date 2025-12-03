@@ -35,12 +35,12 @@
         <text class="entry-badge" wx:if="{{orderCount.pending > 0}}">{{orderCount.pending}}</text>
       </view>
       <view class="entry-item" bindtap="goOrderList" data-status="preparing">
-        <image class="entry-icon" src="/images/order/preparing.png" mode="aspectFit"></image>
+        <image class="entry-icon" src="/images/order/paid.png" mode="aspectFit"></image>
         <text>制作中</text>
         <text class="entry-badge" wx:if="{{orderCount.preparing > 0}}">{{orderCount.preparing}}</text>
       </view>
       <view class="entry-item" bindtap="goOrderList" data-status="ready">
-        <image class="entry-icon" src="/images/order/ready.png" mode="aspectFit"></image>
+        <image class="entry-icon" src="/images/order/delivering.png" mode="aspectFit"></image>
         <text>待取餐</text>
         <text class="entry-badge" wx:if="{{orderCount.ready > 0}}">{{orderCount.ready}}</text>
       </view>
