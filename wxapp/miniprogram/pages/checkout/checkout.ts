@@ -24,8 +24,11 @@ Page({
   loadCartData() {
     const cartData = wx.getStorageSync('cartData');
     if (cartData) {
-      const packingFee = 0; // 堂食默认无打包费
-      const finalPrice = cartData.totalPrice + packingFee - this.data.couponDiscount;
+      // 默认为堂食，无打包费
+      const diningMode = this.data.diningMode;
+      const packingFee = diningMode === 'takeaway' ? 2 : 0;
+      const couponDiscount = this.data.couponDiscount || 0;
+      const finalPrice = cartData.totalPrice + packingFee - couponDiscount;
       this.setData({
         shopInfo: cartData.shopInfo,
         cartList: cartData.cartList,
