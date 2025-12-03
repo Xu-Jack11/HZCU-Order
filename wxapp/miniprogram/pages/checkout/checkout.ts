@@ -1,6 +1,9 @@
 // checkout.ts
 // 结算页面
 
+// 打包费常量
+const PACKING_FEE = 2;
+
 Page({
   data: {
     diningMode: 'dine-in' as 'dine-in' | 'takeaway',
@@ -20,22 +23,27 @@ Page({
     this.loadCartData();
   },
 
+  // 计算总价
+  calculateFinalPrice() {
+    const packingFee = this.data.diningMode === 'takeaway' ? PACKING_FEE : 0;
+    const finalPrice = this.data.totalPrice + packingFee - this.data.couponDiscount;
+    this.setData({
+      packingFee,
+      finalPrice: Math.round(finalPrice * 100) / 100
+    });
+  },
+
   // 加载购物车数据
   loadCartData() {
     const cartData = wx.getStorageSync('cartData');
     if (cartData) {
-      // 默认为堂食，无打包费
-      const diningMode = this.data.diningMode;
-      const packingFee = diningMode === 'takeaway' ? 2 : 0;
-      const couponDiscount = this.data.couponDiscount || 0;
-      const finalPrice = cartData.totalPrice + packingFee - couponDiscount;
       this.setData({
         shopInfo: cartData.shopInfo,
         cartList: cartData.cartList,
         totalPrice: cartData.totalPrice,
-        totalCount: cartData.totalCount,
-        packingFee,
-        finalPrice: Math.round(finalPrice * 100) / 100
+        totalCount: cartData.totalCount
+      }, () => {
+        this.calculateFinalPrice();
       });
     }
   },
@@ -46,13 +54,10 @@ Page({
       itemList: ['堂食', '打包'],
       success: (res) => {
         const modes: Array<'dine-in' | 'takeaway'> = ['dine-in', 'takeaway'];
-        const diningMode = modes[res.tapIndex];
-        const packingFee = diningMode === 'takeaway' ? 2 : 0;
-        const finalPrice = this.data.totalPrice + packingFee - this.data.couponDiscount;
         this.setData({
-          diningMode,
-          packingFee,
-          finalPrice: Math.round(finalPrice * 100) / 100
+          diningMode: modes[res.tapIndex]
+        }, () => {
+          this.calculateFinalPrice();
         });
       }
     });
