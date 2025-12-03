@@ -35,14 +35,13 @@ Page({
       id: 1,
       name: '肯德基（城院店）',
       logo: '/images/shops/kfc.png',
-      deliveryTime: 48,
+      waitTime: 15,
       monthlySales: 719,
       notice: '共赏元月一轮，喜迎中秋良宵。',
       address: '浙江省杭州市拱墅区湖州街51号',
       businessHours: '09:00-22:00',
       phone: '0571-88888888',
-      deliveryFee: 1,
-      startPrice: 20
+      minPrice: 0
     },
     categories: [
       {
@@ -136,7 +135,7 @@ Page({
         nickname: '美食家小王',
         time: '2024-01-15',
         rating: 5,
-        content: '味道很好，配送也很快，推荐！'
+        content: '味道很好，出餐也很快，推荐！'
       },
       {
         id: 2,
@@ -214,7 +213,7 @@ Page({
       totalPrice: Math.round(totalPrice * 10) / 10,
       totalCount,
       cartList,
-      canCheckout: totalPrice >= this.data.shopInfo.startPrice
+      canCheckout: totalCount > 0
     });
   },
 
@@ -270,7 +269,7 @@ Page({
   goCheckout() {
     if (!this.data.canCheckout) {
       wx.showToast({
-        title: `还差${this.data.shopInfo.startPrice - this.data.totalPrice}元起送`,
+        title: '请先选择商品',
         icon: 'none'
       });
       return;

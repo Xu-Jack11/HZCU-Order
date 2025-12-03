@@ -24,10 +24,9 @@ Page({
         logo: '/images/shops/kfc.png',
         rating: 4.8,
         monthlySales: 719,
-        deliveryTime: 53,
+        waitTime: 15,
         distance: '1.8km',
-        startPrice: 20,
-        deliveryFee: 1,
+        minPrice: 0,
         tags: ['20减8', '30减12']
       },
       {
@@ -36,10 +35,9 @@ Page({
         logo: '/images/shops/lamian.png',
         rating: 4.7,
         monthlySales: 1750,
-        deliveryTime: 49,
+        waitTime: 10,
         distance: '2.4km',
-        startPrice: 0,
-        deliveryFee: 2,
+        minPrice: 0,
         tags: ['45减30', '75减45']
       },
       {
@@ -48,10 +46,9 @@ Page({
         logo: '/images/shops/cotti.png',
         rating: 4.8,
         monthlySales: 1613,
-        deliveryTime: 57,
+        waitTime: 12,
         distance: '1.7km',
-        startPrice: 0,
-        deliveryFee: 3,
+        minPrice: 0,
         tags: ['20减12', '35减19']
       },
     ]

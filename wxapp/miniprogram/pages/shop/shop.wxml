@@ -11,7 +11,7 @@
         </view>
       </view>
       <view class="shop-meta">
-        <text>配送约{{shopInfo.deliveryTime}}分钟</text>
+        <text>预计{{shopInfo.waitTime}}分钟</text>
         <text class="divider">|</text>
         <text>月售{{shopInfo.monthlySales}}</text>
       </view>
@@ -128,7 +128,6 @@
       </view>
       <view class="cart-price">
         <text class="total-price">¥{{totalPrice}}</text>
-        <text class="delivery-fee">另需配送费{{shopInfo.deliveryFee}}元</text>
       </view>
     </view>
     <view class="cart-right {{canCheckout ? 'active' : ''}}" bindtap="goCheckout">
