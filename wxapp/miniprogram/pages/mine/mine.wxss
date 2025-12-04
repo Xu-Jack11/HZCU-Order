@@ -1,11 +1,12 @@
 /**mine.wxss**/
 page {
   height: 100vh;
-  background-color: #f5f5f5;
+  background-color: var(--bg-color, #F7F8FA);
 }
 
 .container {
   min-height: 100vh;
+  padding-bottom: 40rpx;
 }
 
 /* 用户信息头部 */
@@ -13,8 +14,9 @@ page {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 60rpx 30rpx 40rpx;
-  background: linear-gradient(to right, #3498db, #2ecc71);
+  padding: 60rpx 40rpx 60rpx;
+  background: #FFFFFF; /* Clean white header */
+  margin-bottom: 20rpx;
 }
 
 .user-info {
@@ -23,11 +25,12 @@ page {
 }
 
 .user-avatar {
-  width: 120rpx;
-  height: 120rpx;
+  width: 128rpx;
+  height: 128rpx;
   border-radius: 50%;
-  border: 4rpx solid rgba(255, 255, 255, 0.5);
-  margin-right: 24rpx;
+  border: 4rpx solid #F5F6F8;
+  margin-right: 32rpx;
+  background-color: #eee;
 }
 
 .user-text {
@@ -36,57 +39,59 @@ page {
 }
 
 .login-hint {
-  font-size: 32rpx;
-  color: #fff;
+  font-size: 36rpx;
+  color: var(--text-main, #333);
   font-weight: bold;
-  margin-bottom: 8rpx;
+  margin-bottom: 12rpx;
 }
 
 .login-desc {
-  font-size: 24rpx;
-  color: rgba(255, 255, 255, 0.8);
+  font-size: 26rpx;
+  color: var(--text-light, #999);
 }
 
 .user-name {
-  font-size: 32rpx;
-  color: #fff;
+  font-size: 36rpx;
+  color: var(--text-main, #333);
   font-weight: bold;
-  margin-bottom: 8rpx;
+  margin-bottom: 12rpx;
 }
 
 .user-phone {
-  font-size: 26rpx;
-  color: rgba(255, 255, 255, 0.8);
+  font-size: 28rpx;
+  color: var(--text-sub, #666);
 }
 
 .setting-icon {
   width: 48rpx;
   height: 48rpx;
+  opacity: 0.6;
 }
 
 /* 订单入口 */
 .order-section {
-  background: #fff;
-  margin: 20rpx;
-  border-radius: 16rpx;
-  padding: 30rpx;
+  background: #FFFFFF;
+  margin: 0 32rpx 32rpx;
+  border-radius: 24rpx;
+  padding: 32rpx;
+  box-shadow: var(--shadow-sm, 0 2rpx 8rpx rgba(0, 0, 0, 0.04));
 }
 
 .section-title {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 30rpx;
-  font-size: 30rpx;
-  color: #333;
-  font-weight: bold;
+  margin-bottom: 40rpx;
+  font-size: 32rpx;
+  color: var(--text-main, #333);
+  font-weight: 600;
 }
 
 .view-all {
   display: flex;
   align-items: center;
   font-size: 26rpx;
-  color: #999;
+  color: var(--text-light, #999);
   font-weight: normal;
 }
 
@@ -94,11 +99,13 @@ page {
   width: 24rpx;
   height: 24rpx;
   margin-left: 8rpx;
+  opacity: 0.4;
 }
 
 .order-quick-entry {
   display: flex;
-  justify-content: space-around;
+  justify-content: space-between;
+  padding: 0 10rpx;
 }
 
 .entry-item {
@@ -106,24 +113,25 @@ page {
   flex-direction: column;
   align-items: center;
   position: relative;
+  min-width: 120rpx;
 }
 
 .entry-icon {
-  width: 60rpx;
-  height: 60rpx;
-  margin-bottom: 12rpx;
+  width: 64rpx;
+  height: 64rpx;
+  margin-bottom: 16rpx;
 }
 
 .entry-item text {
-  font-size: 24rpx;
-  color: #666;
+  font-size: 26rpx;
+  color: var(--text-main, #333);
 }
 
 .entry-badge {
   position: absolute;
-  top: -10rpx;
-  right: -10rpx;
-  background: #e74c3c;
+  top: -8rpx;
+  right: 10rpx;
+  background: #FF3B30;
   color: #fff !important;
   font-size: 20rpx !important;
   min-width: 32rpx;
@@ -132,21 +140,28 @@ page {
   text-align: center;
   border-radius: 16rpx;
   padding: 0 8rpx;
+  border: 2rpx solid #fff;
 }
 
 /* 功能列表 */
 .menu-section {
-  background: #fff;
-  margin: 20rpx;
-  border-radius: 16rpx;
+  background: #FFFFFF;
+  margin: 0 32rpx 32rpx;
+  border-radius: 24rpx;
   overflow: hidden;
+  box-shadow: var(--shadow-sm, 0 2rpx 8rpx rgba(0, 0, 0, 0.04));
 }
 
 .menu-item {
   display: flex;
   align-items: center;
-  padding: 30rpx;
-  border-bottom: 1rpx solid #f5f5f5;
+  padding: 32rpx;
+  border-bottom: 1rpx solid #F5F6F8;
+  transition: background 0.2s;
+}
+
+.menu-item:active {
+  background-color: #F9F9F9;
 }
 
 .menu-item:last-child {
@@ -161,31 +176,32 @@ page {
 
 .menu-text {
   flex: 1;
-  font-size: 28rpx;
-  color: #333;
+  font-size: 30rpx;
+  color: var(--text-main, #333);
 }
 
 .menu-extra {
-  font-size: 24rpx;
-  color: #e74c3c;
+  font-size: 26rpx;
+  color: #FF9500;
   margin-right: 16rpx;
 }
 
 /* 客服 */
 .contact-section {
-  padding: 30rpx;
+  padding: 0 32rpx;
 }
 
 .contact-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #fff;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  font-size: 28rpx;
-  color: #333;
+  background: #FFFFFF;
+  border-radius: 24rpx;
+  padding: 28rpx;
+  font-size: 30rpx;
+  color: var(--text-main, #333);
   border: none;
+  box-shadow: var(--shadow-sm, 0 2rpx 8rpx rgba(0, 0, 0, 0.04));
 }
 
 .contact-btn::after {

@@ -68,3 +68,22 @@ button::after {
   padding-bottom: constant(safe-area-inset-bottom);
   padding-bottom: env(safe-area-inset-bottom);
 }
+
+/* Global Variables & Utilities */
+page {
+  --primary-color: #007AFF;
+  --secondary-color: #5AC8FA;
+  --text-main: #333333;
+  --text-sub: #666666;
+  --text-light: #999999;
+  --bg-color: #F7F8FA;
+  --card-bg: #FFFFFF;
+  --shadow-sm: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 8rpx 24rpx rgba(0, 0, 0, 0.06);
+}
+
+.card {
+  background: var(--card-bg);
+  border-radius: 24rpx;
+  box-shadow: var(--shadow-sm);
+}

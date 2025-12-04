@@ -85,7 +85,7 @@ page {
 }
 
 .tab.active {
-  color: #3498db;
+  color: var(--primary-color, #007AFF);
   font-weight: bold;
 }
 
@@ -97,7 +97,7 @@ page {
   transform: translateX(-50%);
   width: 60rpx;
   height: 4rpx;
-  background: #3498db;
+  background: var(--primary-color, #007AFF);
   border-radius: 2rpx;
 }
 
@@ -125,7 +125,7 @@ page {
 
 .category-item.active {
   background: #fff;
-  color: #3498db;
+  color: var(--primary-color, #007AFF);
   font-weight: bold;
 }
 
@@ -137,7 +137,7 @@ page {
   transform: translateY(-50%);
   width: 6rpx;
   height: 40rpx;
-  background: #3498db;
+  background: var(--primary-color, #007AFF);
   border-radius: 3rpx;
 }
 
@@ -263,12 +263,12 @@ page {
 }
 
 .action-btn.minus {
-  border: 2rpx solid #3498db;
-  color: #3498db;
+  border: 2rpx solid var(--primary-color, #007AFF);
+  color: var(--primary-color, #007AFF);
 }
 
 .action-btn.plus {
-  background: #3498db;
+  background: var(--primary-color, #007AFF);
   color: #fff;
 }
 
@@ -441,7 +441,7 @@ page {
 }
 
 .cart-right.active {
-  background: #2ecc71;
+  background: #34C759;
 }
 
 /* 购物车详情弹窗 */
@@ -475,7 +475,7 @@ page {
 }
 
 .clear-cart {
-  color: #3498db;
+  color: var(--primary-color, #007AFF);
 }
 
 .cart-detail-list {

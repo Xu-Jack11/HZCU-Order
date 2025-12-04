@@ -43,8 +43,10 @@
         <view class="shop-meta">
           <text class="shop-rating">{{item.rating}}分</text>
           <text class="shop-sales">月售{{item.monthlySales}}</text>
-          <text class="shop-time">约{{item.waitTime}}分钟</text>
-          <text class="shop-distance">{{item.distance}}</text>
+          <view class="shop-time-distance">
+            <text class="shop-time">约{{item.waitTime}}分钟</text>
+            <text class="shop-distance">{{item.distance}}</text>
+          </view>
         </view>
         <view class="shop-delivery">
           <text wx:if="{{item.minPrice}}">最低消费¥{{item.minPrice}}</text>
