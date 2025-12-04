@@ -72,8 +72,8 @@ Page({
         ],
         totalCount: 2,
         totalPrice: 30,
-        status: 'delivering',
-        statusText: '配送中',
+        status: 'preparing',
+        statusText: '制作中',
         createTime: '2024-01-15 11:00:00'
       },
       {
@@ -207,16 +207,16 @@ Page({
     });
   },
 
-  // 确认收货
-  confirmReceive(e: any) {
+  // 确认取餐
+  confirmPickup(e: any) {
     const orderId = e.currentTarget.dataset.id;
     wx.showModal({
       title: '提示',
-      content: '确认已收到商品吗？',
+      content: '确认已取餐吗？',
       success: (res) => {
         if (res.confirm) {
           wx.showToast({
-            title: '已确认收货',
+            title: '已确认取餐',
             icon: 'success'
           });
           this.loadOrderList();

@@ -1,18 +1,18 @@
 <!--checkout.wxml-->
 <view class="container">
-  <!-- 收货地址 -->
-  <view class="address-section" bindtap="chooseAddress">
-    <view class="address-content" wx:if="{{address}}">
-      <view class="address-info">
-        <text class="receiver">{{address.name}} {{address.phone}}</text>
-        <text class="address-detail">{{address.province}}{{address.city}}{{address.district}}{{address.detail}}</text>
+  <!-- 就餐信息 -->
+  <view class="dining-section">
+    <view class="dining-item">
+      <text class="label">就餐方式</text>
+      <view class="value" bindtap="chooseDiningMode">
+        <text>{{diningMode === 'dine-in' ? '堂食' : '打包'}}</text>
+        <image class="arrow-right" src="/images/arrow-right.png" mode="aspectFit"></image>
       </view>
     </view>
-    <view class="address-content empty" wx:else>
-      <image class="add-icon" src="/images/menu/address.png" mode="aspectFit"></image>
-      <text>请选择收货地址</text>
+    <view class="dining-item" wx:if="{{diningMode === 'dine-in'}}">
+      <text class="label">桌号</text>
+      <input class="table-input" placeholder="请输入桌号" bindinput="onTableNoInput" value="{{tableNo}}" />
     </view>
-    <image class="arrow-right" src="/images/arrow-right.png" mode="aspectFit"></image>
   </view>
 
   <!-- 商家信息 -->
@@ -33,16 +33,16 @@
     </view>
   </view>
 
-  <!-- 配送信息 -->
-  <view class="delivery-section">
-    <view class="delivery-item">
-      <text class="label">配送时间</text>
-      <view class="value" bindtap="chooseTime">
-        <text>{{deliveryTime || '立即配送'}}</text>
+  <!-- 取餐信息 -->
+  <view class="pickup-section">
+    <view class="pickup-item">
+      <text class="label">取餐时间</text>
+      <view class="value" bindtap="choosePickupTime">
+        <text>{{pickupTime || '立即取餐'}}</text>
         <image class="arrow-right" src="/images/arrow-right.png" mode="aspectFit"></image>
       </view>
     </view>
-    <view class="delivery-item">
+    <view class="pickup-item">
       <text class="label">备注</text>
       <input class="remark-input" placeholder="口味、偏好等" bindinput="onRemarkInput" value="{{remark}}" />
     </view>
@@ -54,9 +54,9 @@
       <text>商品金额</text>
       <text>¥{{totalPrice}}</text>
     </view>
-    <view class="price-item">
-      <text>配送费</text>
-      <text>¥{{shopInfo.deliveryFee}}</text>
+    <view class="price-item" wx:if="{{packingFee > 0}}">
+      <text>打包费</text>
+      <text>¥{{packingFee}}</text>
     </view>
     <view class="price-item" wx:if="{{couponDiscount > 0}}">
       <text>优惠券</text>

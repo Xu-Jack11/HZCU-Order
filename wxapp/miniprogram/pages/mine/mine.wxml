@@ -34,15 +34,15 @@
         <text>待付款</text>
         <text class="entry-badge" wx:if="{{orderCount.pending > 0}}">{{orderCount.pending}}</text>
       </view>
-      <view class="entry-item" bindtap="goOrderList" data-status="paid">
+      <view class="entry-item" bindtap="goOrderList" data-status="preparing">
         <image class="entry-icon" src="/images/order/paid.png" mode="aspectFit"></image>
-        <text>待配送</text>
-        <text class="entry-badge" wx:if="{{orderCount.paid > 0}}">{{orderCount.paid}}</text>
+        <text>制作中</text>
+        <text class="entry-badge" wx:if="{{orderCount.preparing > 0}}">{{orderCount.preparing}}</text>
       </view>
-      <view class="entry-item" bindtap="goOrderList" data-status="delivering">
+      <view class="entry-item" bindtap="goOrderList" data-status="ready">
         <image class="entry-icon" src="/images/order/delivering.png" mode="aspectFit"></image>
-        <text>配送中</text>
-        <text class="entry-badge" wx:if="{{orderCount.delivering > 0}}">{{orderCount.delivering}}</text>
+        <text>待取餐</text>
+        <text class="entry-badge" wx:if="{{orderCount.ready > 0}}">{{orderCount.ready}}</text>
       </view>
       <view class="entry-item" bindtap="goOrderList" data-status="completed">
         <image class="entry-icon" src="/images/order/completed.png" mode="aspectFit"></image>
@@ -53,11 +53,6 @@
 
   <!-- 功能列表 -->
   <view class="menu-section">
-    <view class="menu-item" bindtap="goAddress">
-      <image class="menu-icon" src="/images/menu/address.png" mode="aspectFit"></image>
-      <text class="menu-text">收货地址</text>
-      <image class="arrow-right" src="/images/arrow-right.png" mode="aspectFit"></image>
-    </view>
     <view class="menu-item" bindtap="goFavorite">
       <image class="menu-icon" src="/images/menu/favorite.png" mode="aspectFit"></image>
       <text class="menu-text">我的收藏</text>

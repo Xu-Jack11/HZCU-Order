@@ -11,8 +11,8 @@ Page({
     },
     orderCount: {
       pending: 2,
-      paid: 1,
-      delivering: 1
+      preparing: 1,
+      ready: 1
     },
     couponCount: 3
   },
@@ -80,13 +80,6 @@ Page({
     const status = e.currentTarget.dataset.status;
     wx.navigateTo({
       url: `/pages/order/order?status=${status}`
-    });
-  },
-
-  // 收货地址
-  goAddress() {
-    wx.navigateTo({
-      url: '/pages/address/address'
     });
   },
 
