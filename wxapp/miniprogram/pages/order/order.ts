@@ -104,6 +104,16 @@ Page({
   },
 
   onShow() {
+    // 检查是否有从个人中心传来的状态
+    const status = wx.getStorageSync('orderStatus');
+    if (status) {
+      this.setData({
+        activeStatus: status,
+        page: 1,
+        noMore: false
+      });
+      wx.removeStorageSync('orderStatus');
+    }
     // 页面显示时刷新订单列表
     this.loadOrderList();
   },
@@ -131,9 +141,9 @@ Page({
   // 加载订单列表
   loadOrderList() {
     if (this.data.loading) return;
-    
+
     this.setData({ loading: true });
-    
+
     // 模拟API请求
     setTimeout(() => {
       // 这里应该根据 activeStatus 筛选订单

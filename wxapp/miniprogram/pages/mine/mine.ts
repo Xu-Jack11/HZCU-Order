@@ -78,8 +78,9 @@ Page({
   // 订单列表
   goOrderList(e: any) {
     const status = e.currentTarget.dataset.status;
-    wx.navigateTo({
-      url: `/pages/order/order?status=${status}`
+    wx.setStorageSync('orderStatus', status);
+    wx.switchTab({
+      url: '/pages/order/order'
     });
   },
 
