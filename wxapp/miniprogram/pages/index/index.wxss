@@ -139,6 +139,14 @@ page {
   display: inline-flex; /* Ensure items stay inline in scroll view */
 }
 
+.category-item.active .category-icon {
+  box-shadow: 0 6rpx 14rpx rgba(0, 122, 255, 0.1);
+}
+
+.category-item.active .category-name {
+  color: var(--primary-color, #007AFF);
+}
+
 .category-icon {
   width: 88rpx;
   height: 88rpx;
@@ -205,6 +213,7 @@ page {
   margin-bottom: 24rpx;
   box-shadow: var(--shadow-sm, 0 2rpx 8rpx rgba(0, 0, 0, 0.04));
   transition: transform 0.1s ease;
+  position: relative;
 }
 
 .shop-item:active {
@@ -287,6 +296,23 @@ page {
 .shop-tags {
   display: flex;
   flex-wrap: wrap;
+}
+
+.favorite-btn {
+  position: absolute;
+  right: 24rpx;
+  top: 24rpx;
+  padding: 8rpx 20rpx;
+  font-size: 22rpx;
+  color: var(--text-sub, #666);
+  background: #F5F6F8;
+  border-radius: 999rpx;
+  z-index: 2;
+}
+
+.favorite-btn.active {
+  color: #FF6B00;
+  background: rgba(255, 107, 0, 0.1);
 }
 
 .tag {

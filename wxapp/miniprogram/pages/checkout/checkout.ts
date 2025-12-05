@@ -1,5 +1,8 @@
 // checkout.ts
 // 结算页面
+import { clearCartSnapshot } from '../../utils/cart';
+import { CouponItem } from '../../utils/data';
+import { clearCouponContext, getSelectedCoupon, saveSelectedCoupon, setCouponContext } from '../../utils/coupon';
 
 // 常量定义
 const PACKING_FEE = 2;
@@ -22,11 +25,16 @@ Page({
     remark: '',
     packingFee: 0,
     couponDiscount: 0,
-    finalPrice: 0
+    finalPrice: 0,
+    selectedCoupon: null as CouponItem | null
   },
 
   onLoad() {
     this.loadCartData();
+  },
+
+  onShow() {
+    this.syncSelectedCoupon();
   },
 
   // 计算打包费
@@ -37,25 +45,70 @@ Page({
   // 计算总价
   calculateFinalPrice() {
     const packingFee = this.getPackingFee(this.data.diningMode);
-    const finalPrice = this.data.totalPrice + packingFee - this.data.couponDiscount;
+    const couponDiscount = this.getCouponDiscount(packingFee);
+    const finalPrice = this.data.totalPrice + packingFee - couponDiscount;
     this.setData({
       packingFee,
+      couponDiscount,
       finalPrice: Math.round(finalPrice * 100) / 100
     });
+  },
+
+  getCouponDiscount(packingFee: number) {
+    const coupon = this.data.selectedCoupon;
+    if (!coupon || !this.data.shopInfo?.id) return 0;
+    if (coupon.scope === 'shop' && coupon.shopId && coupon.shopId !== this.data.shopInfo.id) {
+      return 0;
+    }
+    const payable = this.data.totalPrice + packingFee;
+    return payable >= coupon.threshold ? coupon.discount : 0;
+  },
+
+  syncSelectedCoupon() {
+    const coupon = getSelectedCoupon();
+    if (!coupon || !this.data.shopInfo?.id) {
+      this.setData(
+        {
+          selectedCoupon: null,
+          couponDiscount: 0
+        },
+        () => this.calculateFinalPrice()
+      );
+      return;
+    }
+    if (coupon.scope === 'shop' && coupon.shopId && coupon.shopId !== this.data.shopInfo.id) {
+      this.setData(
+        {
+          selectedCoupon: null,
+          couponDiscount: 0
+        },
+        () => this.calculateFinalPrice()
+      );
+      return;
+    }
+    this.setData(
+      {
+        selectedCoupon: coupon
+      },
+      () => this.calculateFinalPrice()
+    );
   },
 
   // 加载购物车数据
   loadCartData() {
     const cartData = wx.getStorageSync('cartData');
     if (cartData) {
-      this.setData({
-        shopInfo: cartData.shopInfo,
-        cartList: cartData.cartList,
-        totalPrice: cartData.totalPrice,
-        totalCount: cartData.totalCount
-      }, () => {
-        this.calculateFinalPrice();
-      });
+      this.setData(
+        {
+          shopInfo: cartData.shopInfo,
+          cartList: cartData.cartList,
+          totalPrice: cartData.totalPrice,
+          totalCount: cartData.totalCount
+        },
+        () => {
+          this.syncSelectedCoupon();
+        }
+      );
     }
   },
 
@@ -65,11 +118,14 @@ Page({
       itemList: DINING_MODE_LABELS,
       success: (res) => {
         const diningMode = res.tapIndex === 0 ? DINING_MODES.DINE_IN : DINING_MODES.TAKEAWAY;
-        this.setData({
-          diningMode
-        }, () => {
-          this.calculateFinalPrice();
-        });
+        this.setData(
+          {
+            diningMode
+          },
+          () => {
+            this.calculateFinalPrice();
+          }
+        );
       }
     });
   },
@@ -90,6 +146,18 @@ Page({
           pickupTime: PICKUP_TIMES[res.tapIndex]
         });
       }
+    });
+  },
+
+  // 选择优惠券
+  chooseCoupon() {
+    const payableAmount = this.data.totalPrice + this.getPackingFee(this.data.diningMode);
+    setCouponContext({
+      shopId: this.data.shopInfo?.id,
+      payableAmount
+    });
+    wx.navigateTo({
+      url: '/pages/coupon/coupon'
     });
   },
 
@@ -115,10 +183,11 @@ Page({
     // 模拟订单提交
     setTimeout(() => {
       wx.hideLoading();
-      
-      // 清空购物车数据
       wx.removeStorageSync('cartData');
-      
+      clearCartSnapshot(this.data.shopInfo?.id || 0);
+      saveSelectedCoupon(null);
+      clearCouponContext();
+
       wx.showToast({
         title: '下单成功',
         icon: 'success',

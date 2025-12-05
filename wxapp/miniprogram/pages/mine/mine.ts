@@ -1,5 +1,6 @@
 // mine.ts
 // 个人中心页
+import { clearCouponContext } from '../../utils/coupon';
 
 Page({
   data: {
@@ -70,9 +71,7 @@ Page({
 
   // 设置
   goSetting() {
-    wx.navigateTo({
-      url: '/pages/setting/setting'
-    });
+    wx.openSetting({});
   },
 
   // 订单列表
@@ -93,6 +92,7 @@ Page({
 
   // 优惠券
   goCoupon() {
+    clearCouponContext();
     wx.navigateTo({
       url: '/pages/coupon/coupon'
     });
@@ -100,22 +100,28 @@ Page({
 
   // 帮助中心
   goHelp() {
-    wx.navigateTo({
-      url: '/pages/help/help'
+    wx.showModal({
+      title: '帮助中心',
+      content: '常见问题与客服指南将很快上线，当前可直接联系客服或提交反馈。',
+      showCancel: false
     });
   },
 
   // 意见反馈
   goFeedback() {
-    wx.navigateTo({
-      url: '/pages/feedback/feedback'
+    wx.showModal({
+      title: '意见反馈',
+      content: '请通过客服或邮件 support@example.com 联系我们，您的建议会让产品更好。',
+      showCancel: false
     });
   },
 
   // 关于我们
   goAbout() {
-    wx.navigateTo({
-      url: '/pages/about/about'
+    wx.showModal({
+      title: '关于我们',
+      content: '城院点餐由校园信息化小组维护，致力于提供更快更稳的点餐体验。',
+      showCancel: false
     });
   }
 });

@@ -1,0 +1,28 @@
+<view class="container">
+  <view class="empty-state" wx:if="{{favorites.length === 0}}">
+    <image class="empty-icon" src="/images/empty-order.png" mode="aspectFit"></image>
+    <text class="empty-text">还没有收藏的商家</text>
+    <view class="primary-btn" bindtap="goHome">去逛逛</view>
+  </view>
+
+  <scroll-view class="fav-list" scroll-y wx:else>
+    <view class="fav-item" wx:for="{{favorites}}" wx:key="id">
+      <image class="fav-logo" src="{{item.logo}}" mode="aspectFill"></image>
+      <view class="fav-info">
+        <view class="fav-name">{{item.name}}</view>
+        <view class="fav-meta">
+          <text>评分 {{item.rating}}分</text>
+          <text class="dot">·</text>
+          <text>月售 {{item.monthlySales}}</text>
+        </view>
+        <view class="fav-tags">
+          <text class="tag" wx:for="{{item.tags}}" wx:key="*this">{{tag}}</text>
+        </view>
+        <view class="fav-actions">
+          <view class="action-btn" bindtap="goToShop" data-id="{{item.id}}">去下单</view>
+          <view class="action-btn danger" bindtap="removeFavorite" data-id="{{item.id}}">取消收藏</view>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+</view>

@@ -21,7 +21,7 @@
   <!-- 分类导航 -->
   <scroll-view class="category-scroll" scroll-x>
     <view class="category-list">
-      <view class="category-item" wx:for="{{categories}}" wx:key="id" bindtap="onCategoryTap" data-id="{{item.id}}">
+      <view class="category-item {{selectedCategoryId === item.id ? 'active' : ''}}" wx:for="{{categories}}" wx:key="id" bindtap="onCategoryTap" data-id="{{item.id}}">
         <image class="category-icon" src="{{item.icon}}" mode="aspectFit"></image>
         <text class="category-name">{{item.name}}</text>
       </view>
@@ -37,6 +37,9 @@
   <!-- 商家列表 -->
   <scroll-view class="shop-list" scroll-y bindscrolltolower="loadMore">
     <view class="shop-item" wx:for="{{shopList}}" wx:key="id" bindtap="goToShop" data-id="{{item.id}}">
+      <view class="favorite-btn {{item.isFavorite ? 'active' : ''}}" catchtap="toggleFavorite" data-id="{{item.id}}">
+        <text>{{item.isFavorite ? '已收藏' : '收藏'}}</text>
+      </view>
       <image class="shop-logo" src="{{item.logo}}" mode="aspectFill"></image>
       <view class="shop-info">
         <view class="shop-name">{{item.name}}</view>

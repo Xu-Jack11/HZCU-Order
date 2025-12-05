@@ -6,7 +6,7 @@
       <view class="shop-name-row">
         <text class="shop-name">{{shopInfo.name}}</text>
         <view class="shop-actions">
-          <image class="action-icon" src="/images/heart.png" mode="aspectFit" bindtap="toggleFavorite"></image>
+          <image class="action-icon {{isFavorite ? 'active' : ''}}" src="/images/heart.png" mode="aspectFit" bindtap="toggleFavorite"></image>
           <image class="action-icon" src="/images/warning.png" mode="aspectFit" bindtap="showWarning"></image>
         </view>
       </view>

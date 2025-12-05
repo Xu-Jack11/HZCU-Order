@@ -165,8 +165,12 @@ Page({
   // 跳转订单详情
   goOrderDetail(e: any) {
     const orderId = e.currentTarget.dataset.id;
-    wx.navigateTo({
-      url: `/pages/order-detail/order-detail?id=${orderId}`
+    const order = this.data.orderList.find((item) => item.id === orderId);
+    if (!order) return;
+    wx.showModal({
+      title: '订单详情',
+      content: `商家：${order.shopName}\n金额：¥${order.totalPrice}\n状态：${order.statusText}`,
+      showCancel: false
     });
   },
 
@@ -192,8 +196,15 @@ Page({
   // 去付款
   payOrder(e: any) {
     const orderId = e.currentTarget.dataset.id;
-    wx.navigateTo({
-      url: `/pages/payment/payment?id=${orderId}`
+    const orderIndex = this.data.orderList.findIndex((item) => item.id === orderId);
+    if (orderIndex === -1) return;
+    const orderList = this.data.orderList;
+    orderList[orderIndex].status = 'preparing';
+    orderList[orderIndex].statusText = '制作中';
+    this.setData({ orderList });
+    wx.showToast({
+      title: '已模拟支付',
+      icon: 'success'
     });
   },
 
@@ -211,9 +222,9 @@ Page({
 
   // 去评价
   commentOrder(e: any) {
-    const orderId = e.currentTarget.dataset.id;
-    wx.navigateTo({
-      url: `/pages/comment/comment?id=${orderId}`
+    wx.showToast({
+      title: '评价功能即将上线',
+      icon: 'none'
     });
   },
 

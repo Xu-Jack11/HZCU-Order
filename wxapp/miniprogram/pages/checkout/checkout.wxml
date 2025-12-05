@@ -46,6 +46,16 @@
       <text class="label">备注</text>
       <input class="remark-input" placeholder="口味、偏好等" bindinput="onRemarkInput" value="{{remark}}" />
     </view>
+    <view class="pickup-item">
+      <text class="label">优惠券</text>
+      <view class="value" bindtap="chooseCoupon">
+        <text>{{selectedCoupon ? selectedCoupon.title : '请选择优惠券'}}</text>
+        <text class="coupon-brief" wx:if="{{selectedCoupon}}">
+          {{couponDiscount > 0 ? '-¥' + couponDiscount : '未满足门槛'}}
+        </text>
+        <image class="arrow-right" src="/images/arrow-right.png" mode="aspectFit"></image>
+      </view>
+    </view>
   </view>
 
   <!-- 价格明细 -->

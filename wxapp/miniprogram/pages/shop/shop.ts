@@ -1,5 +1,8 @@
 // shop.ts
 // 商家详情页
+import { getCartSnapshot, saveCartSnapshot, clearCartSnapshot } from '../../utils/cart';
+import { getShopById, ShopItem } from '../../utils/data';
+import { isFavoriteShop, toggleFavoriteShop } from '../../utils/favorite';
 
 interface GoodsItem {
   id: number;
@@ -31,6 +34,7 @@ Page({
     totalCount: 0,
     canCheckout: false,
     cartList: [] as GoodsItem[],
+    isFavorite: false,
     shopInfo: {
       id: 1,
       name: '肯德基（城院店）',
@@ -41,7 +45,9 @@ Page({
       address: '浙江省杭州市拱墅区湖州街51号',
       businessHours: '09:00-22:00',
       phone: '0571-88888888',
-      minPrice: 0
+      minPrice: 0,
+      rating: 4.8,
+      distance: '1.8km'
     },
     categories: [
       {
@@ -149,16 +155,60 @@ Page({
   },
 
   onLoad(options: any) {
-    if (options.id) {
-      this.setData({ shopId: parseInt(options.id) });
-      this.loadShopInfo(options.id);
-    }
+    const shopId = options.id ? parseInt(options.id) : 1;
+    this.setData({ shopId });
+    this.loadShopInfo(shopId);
+    this.restoreCartFromStorage(shopId);
+  },
+
+  onShow() {
+    this.setData({
+      isFavorite: isFavoriteShop(this.data.shopId)
+    });
   },
 
   // 加载商家信息
-  loadShopInfo(shopId: string) {
-    // 这里应该调用API获取商家详情
-    // 目前使用模拟数据
+  loadShopInfo(shopId: number) {
+    const shop = getShopById(shopId);
+    if (shop) {
+      this.setData({
+        shopInfo: { ...this.data.shopInfo, ...shop },
+        isFavorite: isFavoriteShop(shop.id)
+      });
+    }
+  },
+
+  restoreCartFromStorage(shopId: number) {
+    const snapshot = getCartSnapshot(shopId);
+    if (!snapshot || !snapshot.cartList) return;
+    const cartMap = new Map<number, number>();
+    snapshot.cartList.forEach((item) => {
+      cartMap.set(item.id, item.count);
+    });
+    const categories = this.data.categories;
+    let totalPrice = 0;
+    let totalCount = 0;
+    const cartList: GoodsItem[] = [];
+
+    categories.forEach((category) => {
+      category.goods.forEach((goods) => {
+        const count = cartMap.get(goods.id) || 0;
+        goods.count = count;
+        if (count > 0) {
+          totalPrice += goods.price * count;
+          totalCount += count;
+          cartList.push({ ...goods });
+        }
+      });
+    });
+
+    this.setData({
+      categories,
+      totalPrice: Math.round(totalPrice * 10) / 10,
+      totalCount,
+      cartList,
+      canCheckout: totalCount > 0
+    });
   },
 
   // 切换标签页
@@ -215,6 +265,14 @@ Page({
       cartList,
       canCheckout: totalCount > 0
     });
+
+    saveCartSnapshot({
+      shopId: this.data.shopId,
+      shopInfo: this.data.shopInfo,
+      cartList,
+      totalPrice: Math.round(totalPrice * 10) / 10,
+      totalCount
+    });
   },
 
   // 显示购物车详情
@@ -246,13 +304,19 @@ Page({
       canCheckout: false,
       showCartDetail: false
     });
+    clearCartSnapshot(this.data.shopId);
   },
 
   // 收藏/取消收藏
   toggleFavorite() {
+    const shopDetail: ShopItem | null = getShopById(this.data.shopId);
+    if (!shopDetail) return;
+    const favorites = toggleFavoriteShop(shopDetail);
+    const isFavorite = favorites.some((item) => item.id === shopDetail.id);
+    this.setData({ isFavorite });
     wx.showToast({
-      title: '已收藏',
-      icon: 'success'
+      title: isFavorite ? '已收藏' : '已取消收藏',
+      icon: 'none'
     });
   },
 

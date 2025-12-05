@@ -43,6 +43,12 @@ page {
   width: 48rpx;
   height: 48rpx;
   margin-left: 20rpx;
+  opacity: 0.7;
+}
+
+.action-icon.active {
+  opacity: 1;
+  filter: drop-shadow(0 4rpx 8rpx rgba(255, 107, 0, 0.2));
 }
 
 .shop-meta {
