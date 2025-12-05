@@ -4,6 +4,7 @@
     "pages/order/order",
     "pages/mine/mine",
     "pages/shop/shop",
+    "pages/favorite/favorite",
     "pages/checkout/checkout",
     "pages/logs/logs"
   ],

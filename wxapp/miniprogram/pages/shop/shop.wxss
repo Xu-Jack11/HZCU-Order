@@ -45,6 +45,10 @@ page {
   margin-left: 20rpx;
 }
 
+.action-icon.active {
+  filter: hue-rotate(320deg) saturate(1.4);
+}
+
 .shop-meta {
   font-size: 26rpx;
   color: #666;

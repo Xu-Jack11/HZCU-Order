@@ -115,10 +115,13 @@ Page({
     // 模拟订单提交
     setTimeout(() => {
       wx.hideLoading();
-      
+
       // 清空购物车数据
       wx.removeStorageSync('cartData');
-      
+      if (this.data.shopInfo && this.data.shopInfo.id) {
+        wx.removeStorageSync(`shopCart_${this.data.shopInfo.id}`);
+      }
+
       wx.showToast({
         title: '下单成功',
         icon: 'success',

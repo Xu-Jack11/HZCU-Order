@@ -1,0 +1,35 @@
+<!-- favorite.wxml -->
+<view class="container">
+  <view class="header">
+    <text class="title">我的收藏</text>
+    <view class="clear-btn" wx:if="{{favorites.length > 0}}" bindtap="clearAll">清空</view>
+  </view>
+
+  <scroll-view class="favorite-list" scroll-y>
+    <view class="favorite-item" wx:for="{{favorites}}" wx:key="id">
+      <image class="shop-logo" src="{{item.logo}}" mode="aspectFill"></image>
+      <view class="shop-info" bindtap="goToShop" data-id="{{item.id}}">
+        <view class="shop-name-row">
+          <text class="shop-name">{{item.name}}</text>
+          <view class="tag-list" wx:if="{{item.tags && item.tags.length}}">
+            <text class="tag" wx:for="{{item.tags}}" wx:key="*this">{{tag}}</text>
+          </view>
+        </view>
+        <view class="shop-meta">
+          <text>{{item.rating}}分</text>
+          <text class="divider">|</text>
+          <text>月售{{item.monthlySales}}</text>
+          <text class="divider">|</text>
+          <text>约{{item.waitTime}}分钟</text>
+        </view>
+      </view>
+      <view class="action" bindtap="removeFavorite" data-id="{{item.id}}">移除</view>
+    </view>
+
+    <view class="empty" wx:if="{{favorites.length === 0}}">
+      <image class="empty-img" src="/images/empty-order.png" mode="aspectFit"></image>
+      <text class="empty-text">{{emptyText}}</text>
+      <button class="go-home" bindtap="goHome">前往首页</button>
+    </view>
+  </scroll-view>
+</view>

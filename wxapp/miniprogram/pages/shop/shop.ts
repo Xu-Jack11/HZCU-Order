@@ -1,6 +1,9 @@
 // shop.ts
 // 商家详情页
 
+const FAVORITE_KEY = 'favoriteShops';
+const getCartKey = (shopId: number) => `shopCart_${shopId}`;
+
 interface GoodsItem {
   id: number;
   name: string;
@@ -30,6 +33,7 @@ Page({
     totalPrice: 0,
     totalCount: 0,
     canCheckout: false,
+    isFavorite: false,
     cartList: [] as GoodsItem[],
     shopInfo: {
       id: 1,
@@ -37,6 +41,7 @@ Page({
       logo: '/images/shops/kfc.png',
       waitTime: 15,
       monthlySales: 719,
+      rating: 4.8,
       notice: '共赏元月一轮，喜迎中秋良宵。',
       address: '浙江省杭州市拱墅区湖州街51号',
       businessHours: '09:00-22:00',
@@ -149,8 +154,13 @@ Page({
   },
 
   onLoad(options: any) {
+    const shopId = options.id ? parseInt(options.id) : this.data.shopId;
+    this.setData({ shopId }, () => {
+      this.restoreCartFromStorage();
+      this.syncFavoriteState();
+    });
+
     if (options.id) {
-      this.setData({ shopId: parseInt(options.id) });
       this.loadShopInfo(options.id);
     }
   },
@@ -159,6 +169,13 @@ Page({
   loadShopInfo(shopId: string) {
     // 这里应该调用API获取商家详情
     // 目前使用模拟数据
+  },
+
+  // 同步收藏状态
+  syncFavoriteState() {
+    const favorites = wx.getStorageSync(FAVORITE_KEY) || [];
+    const isFavorite = favorites.some((fav: any) => fav.id === this.data.shopInfo.id);
+    this.setData({ isFavorite });
   },
 
   // 切换标签页
@@ -191,15 +208,25 @@ Page({
   // 更新商品数量
   updateGoodsCount(goodsId: number, delta: number) {
     const categories = this.data.categories;
+    categories.forEach((category) => {
+      category.goods.forEach((goods) => {
+        if (goods.id === goodsId) {
+          goods.count = Math.max(0, goods.count + delta);
+        }
+      });
+    });
+
+    this.updateCartState(categories);
+  },
+
+  // 重新计算购物车数据
+  updateCartState(categories: Category[]) {
     let totalPrice = 0;
     let totalCount = 0;
     const cartList: GoodsItem[] = [];
 
     categories.forEach((category) => {
       category.goods.forEach((goods) => {
-        if (goods.id === goodsId) {
-          goods.count = Math.max(0, goods.count + delta);
-        }
         if (goods.count > 0) {
           totalPrice += goods.price * goods.count;
           totalCount += goods.count;
@@ -215,6 +242,32 @@ Page({
       cartList,
       canCheckout: totalCount > 0
     });
+
+    if (totalCount > 0) {
+      wx.setStorageSync(getCartKey(this.data.shopId), {
+        items: cartList.map((item) => ({ id: item.id, count: item.count })),
+        totalPrice: Math.round(totalPrice * 10) / 10,
+        totalCount
+      });
+    } else {
+      wx.removeStorageSync(getCartKey(this.data.shopId));
+    }
+  },
+
+  // 恢复购物车数据
+  restoreCartFromStorage() {
+    const savedCart = wx.getStorageSync(getCartKey(this.data.shopId));
+    if (!savedCart || !savedCart.items) return;
+
+    const categories = this.data.categories;
+    categories.forEach((category) => {
+      category.goods.forEach((goods) => {
+        const matched = savedCart.items.find((item: any) => item.id === goods.id);
+        goods.count = matched ? matched.count : 0;
+      });
+    });
+
+    this.updateCartState(categories);
   },
 
   // 显示购物车详情
@@ -246,12 +299,26 @@ Page({
       canCheckout: false,
       showCartDetail: false
     });
+    wx.removeStorageSync(getCartKey(this.data.shopId));
   },
 
   // 收藏/取消收藏
   toggleFavorite() {
+    const favorites = wx.getStorageSync(FAVORITE_KEY) || [];
+    const exists = favorites.find((fav: any) => fav.id === this.data.shopInfo.id);
+    let nextFavorites = favorites;
+
+    if (exists) {
+      nextFavorites = favorites.filter((fav: any) => fav.id !== this.data.shopInfo.id);
+    } else {
+      nextFavorites = [...favorites, this.data.shopInfo];
+    }
+
+    wx.setStorageSync(FAVORITE_KEY, nextFavorites);
+    this.setData({ isFavorite: !exists });
+
     wx.showToast({
-      title: '已收藏',
+      title: exists ? '已取消收藏' : '已收藏',
       icon: 'success'
     });
   },
