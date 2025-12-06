@@ -3,6 +3,7 @@
 import { clearCartSnapshot } from '../../utils/cart';
 import { CouponItem } from '../../utils/data';
 import { clearCouponContext, getSelectedCoupon, saveSelectedCoupon, setCouponContext } from '../../utils/coupon';
+import { createOrder } from '../../utils/api';
 
 // 常量定义
 const PACKING_FEE = 2;
@@ -169,7 +170,7 @@ Page({
   },
 
   // 提交订单
-  submitOrder() {
+  async submitOrder() {
     if (this.data.diningMode === DINING_MODES.DINE_IN && !this.data.tableNo) {
       wx.showToast({
         title: '请输入桌号',
@@ -180,9 +181,16 @@ Page({
 
     wx.showLoading({ title: '提交中...' });
 
-    // 模拟订单提交
-    setTimeout(() => {
-      wx.hideLoading();
+    try {
+      await createOrder({
+        shopId: this.data.shopInfo?.id || 0,
+        cartList: this.data.cartList,
+        totalPrice: this.data.finalPrice,
+        diningMode: this.data.diningMode,
+        tableNo: this.data.tableNo,
+        pickupTime: this.data.pickupTime,
+        remark: this.data.remark
+      });
       wx.removeStorageSync('cartData');
       clearCartSnapshot(this.data.shopInfo?.id || 0);
       saveSelectedCoupon(null);
@@ -200,6 +208,13 @@ Page({
           }, 1500);
         }
       });
-    }, 1000);
+    } catch (error) {
+      wx.showToast({
+        title: '下单失败',
+        icon: 'none'
+      });
+    } finally {
+      wx.hideLoading();
+    }
   }
 });

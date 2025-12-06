@@ -293,6 +293,7 @@ npm run build
 - 商家详情与购物车数据本地持久化，可跨页面恢复
 - 结算页增加优惠券选择与金额联动，提供“暂不使用”快速入口
 - 优惠券、收藏、订单操作均采用即时反馈，避免无效按钮
+- 预留 API 调用层（`miniprogram/utils/api.ts`）与请求封装（`utils/request.ts`），默认使用本地 Mock，可随时切换至真实后端
 
 ## 后端接口对接说明
 
@@ -325,6 +326,11 @@ export const request = (options: WechatMiniprogram.RequestOption) => {
   });
 };
 ```
+
+### 接口封装与 Mock 切换
+- 统一通过 `miniprogram/utils/api.ts` 调用 `docs/API/API.md` 中的路径，路径已按 `/auth/*`、`/home/feed`、`/canteens`、`/orders` 等划分
+- `USE_MOCK` 默认开启，便于演示。关闭后将直接请求后端；请求基地址与鉴权头在 `utils/request.ts` 配置
+- Mock 数据来源：`utils/mock.ts`、`utils/data.ts`，保持与页面展示一致
 
 ### 接口调用示例
 

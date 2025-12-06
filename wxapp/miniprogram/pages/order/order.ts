@@ -1,5 +1,6 @@
 // order.ts
 // 订单列表页
+import { cancelOrder, confirmPickup, fetchOrders, payOrder } from '../../utils/api';
 
 interface GoodsItem {
   id: number;
@@ -22,81 +23,15 @@ interface OrderItem {
   createTime: string;
 }
 
+const PAGE_SIZE = 6;
+
 Page({
   data: {
     activeStatus: 'all',
     loading: false,
     noMore: false,
     page: 1,
-    orderList: [
-      {
-        id: 1,
-        shopId: 1,
-        shopName: '肯德基（城院店）',
-        shopLogo: '/images/shops/kfc.png',
-        goods: [
-          {
-            id: 101,
-            name: '嫩牛五方超值单人餐',
-            image: '/images/goods/niuwufang.png',
-            price: 19.5,
-            count: 1
-          },
-          {
-            id: 102,
-            name: '香辣鸡腿堡单人餐',
-            image: '/images/goods/jileitui.png',
-            price: 25.9,
-            count: 1
-          }
-        ],
-        totalCount: 2,
-        totalPrice: 45.4,
-        status: 'completed',
-        statusText: '已完成',
-        createTime: '2024-01-15 12:30:00'
-      },
-      {
-        id: 2,
-        shopId: 2,
-        shopName: '兰州拉面',
-        shopLogo: '/images/shops/lamian.png',
-        goods: [
-          {
-            id: 201,
-            name: '兰州牛肉拉面',
-            image: '/images/goods/lamian.png',
-            price: 15,
-            count: 2
-          }
-        ],
-        totalCount: 2,
-        totalPrice: 30,
-        status: 'preparing',
-        statusText: '制作中',
-        createTime: '2024-01-15 11:00:00'
-      },
-      {
-        id: 3,
-        shopId: 3,
-        shopName: '库迪咖啡（城院南校区店）',
-        shopLogo: '/images/shops/cotti.png',
-        goods: [
-          {
-            id: 301,
-            name: '美式咖啡',
-            image: '/images/goods/coffee.png',
-            price: 9.9,
-            count: 1
-          }
-        ],
-        totalCount: 1,
-        totalPrice: 9.9,
-        status: 'pending',
-        statusText: '待付款',
-        createTime: '2024-01-15 10:30:00'
-      }
-    ] as OrderItem[]
+    orderList: [] as OrderItem[]
   },
 
   onLoad() {
@@ -104,7 +39,6 @@ Page({
   },
 
   onShow() {
-    // 检查是否有从个人中心传来的状态
     const status = wx.getStorageSync('orderStatus');
     if (status) {
       this.setData({
@@ -114,7 +48,6 @@ Page({
       });
       wx.removeStorageSync('orderStatus');
     }
-    // 页面显示时刷新订单列表
     this.loadOrderList();
   },
 
@@ -139,27 +72,44 @@ Page({
   },
 
   // 加载订单列表
-  loadOrderList() {
-    if (this.data.loading) return;
-
+  async loadOrderList() {
+    if (this.data.loading || (this.data.noMore && this.data.page > 1)) return;
     this.setData({ loading: true });
 
-    // 模拟API请求
-    setTimeout(() => {
-      // 这里应该根据 activeStatus 筛选订单
-      this.setData({
-        loading: false
+    try {
+      const res: any = await fetchOrders({
+        status: this.data.activeStatus,
+        page: this.data.page,
+        pageSize: PAGE_SIZE
       });
-    }, 500);
+      const list = res?.list || [];
+      const merged =
+        this.data.page === 1 ? list : [...this.data.orderList, ...list];
+      const total = res?.total || merged.length;
+      const noMore = merged.length >= total || list.length < PAGE_SIZE;
+      this.setData({
+        loading: false,
+        noMore,
+        orderList: merged
+      });
+    } catch (error) {
+      this.setData({ loading: false });
+      wx.showToast({
+        title: '订单加载失败',
+        icon: 'none'
+      });
+    }
   },
 
   // 加载更多
   loadMore() {
     if (this.data.loading || this.data.noMore) return;
-    this.setData({
-      page: this.data.page + 1
-    });
-    this.loadOrderList();
+    this.setData(
+      {
+        page: this.data.page + 1
+      },
+      () => this.loadOrderList()
+    );
   },
 
   // 跳转订单详情
@@ -180,39 +130,48 @@ Page({
     wx.showModal({
       title: '提示',
       content: '确定要取消这个订单吗？',
-      success: (res) => {
+      success: async (res) => {
         if (res.confirm) {
-          // 调用取消订单API
-          wx.showToast({
-            title: '订单已取消',
-            icon: 'success'
-          });
-          this.loadOrderList();
+          try {
+            await cancelOrder(orderId);
+            wx.showToast({
+              title: '订单已取消',
+              icon: 'success'
+            });
+            this.refreshList();
+          } catch (error) {
+            wx.showToast({
+              title: '取消失败',
+              icon: 'none'
+            });
+          }
         }
       }
     });
   },
 
   // 去付款
-  payOrder(e: any) {
+  async payOrder(e: any) {
     const orderId = e.currentTarget.dataset.id;
-    const orderIndex = this.data.orderList.findIndex((item) => item.id === orderId);
-    if (orderIndex === -1) return;
-    const orderList = this.data.orderList;
-    orderList[orderIndex].status = 'preparing';
-    orderList[orderIndex].statusText = '制作中';
-    this.setData({ orderList });
-    wx.showToast({
-      title: '已模拟支付',
-      icon: 'success'
-    });
+    try {
+      await payOrder(orderId);
+      wx.showToast({
+        title: '已模拟支付',
+        icon: 'success'
+      });
+      this.refreshList();
+    } catch (error) {
+      wx.showToast({
+        title: '支付失败',
+        icon: 'none'
+      });
+    }
   },
 
   // 再来一单
   reOrder(e: any) {
     const orderId = e.currentTarget.dataset.id;
-    // 根据订单ID找到对应订单
-    const order = this.data.orderList.find(o => o.id === orderId);
+    const order = this.data.orderList.find((o) => o.id === orderId);
     if (order) {
       wx.navigateTo({
         url: `/pages/shop/shop?id=${order.shopId}`
@@ -221,7 +180,7 @@ Page({
   },
 
   // 去评价
-  commentOrder(e: any) {
+  commentOrder() {
     wx.showToast({
       title: '评价功能即将上线',
       icon: 'none'
@@ -234,16 +193,32 @@ Page({
     wx.showModal({
       title: '提示',
       content: '确认已取餐吗？',
-      success: (res) => {
+      success: async (res) => {
         if (res.confirm) {
-          wx.showToast({
-            title: '已确认取餐',
-            icon: 'success'
-          });
-          this.loadOrderList();
+          try {
+            await confirmPickup(orderId);
+            wx.showToast({
+              title: '已确认取餐',
+              icon: 'success'
+            });
+            this.refreshList();
+          } catch (error) {
+            wx.showToast({
+              title: '操作失败',
+              icon: 'none'
+            });
+          }
         }
       }
     });
+  },
+
+  refreshList() {
+    this.setData({
+      page: 1,
+      noMore: false
+    });
+    this.loadOrderList();
   },
 
   // 去首页点餐

@@ -1,9 +1,10 @@
 // index.ts
 // 首页 - 商家列表
-import { shopCatalog, ShopItem } from '../../utils/data';
+import { fetchCanteens } from '../../utils/api';
+import { ShopItem } from '../../utils/data';
 import { getFavoriteShops, toggleFavoriteShop } from '../../utils/favorite';
 
-const PAGE_SIZE = 4;
+const PAGE_SIZE = 6;
 
 Page({
   data: {
@@ -26,16 +27,14 @@ Page({
     shopList: [] as (ShopItem & { isFavorite?: boolean })[]
   },
 
-  filteredShops: shopCatalog as ShopItem[],
-
   onLoad() {
     this.syncFavoriteIds();
-    this.applyFilters();
+    this.loadShopList(true);
   },
 
   onShow() {
     this.syncFavoriteIds();
-    this.applyFilters(false);
+    this.loadShopList(true);
   },
 
   syncFavoriteIds() {
@@ -63,7 +62,7 @@ Page({
 
   // 搜索
   onSearch() {
-    this.applyFilters();
+    this.loadShopList(true);
   },
 
   // 分类点击
@@ -76,9 +75,7 @@ Page({
         noMore: false,
         shopList: []
       },
-      () => {
-        this.applyFilters();
-      }
+      () => this.loadShopList(true)
     );
   },
 
@@ -92,71 +89,40 @@ Page({
         shopList: [],
         noMore: false
       },
-      () => this.applyFilters()
+      () => this.loadShopList(true)
     );
   },
 
-  applyFilters(resetPage: boolean = true) {
-    const keyword = (this.data.searchKeyword || '').trim();
-    const categoryId = this.data.selectedCategoryId;
-
-    let list = shopCatalog.slice();
-    if (categoryId) {
-      list = list.filter((shop) => shop.categoryIds.includes(categoryId));
-    }
-    if (keyword) {
-      list = list.filter(
-        (shop) =>
-          shop.name.includes(keyword) ||
-          shop.tags.some((tag) => tag.includes(keyword))
-      );
-    }
-    if (this.data.activeTab === 'nearby') {
-      list = list.sort((a, b) => a.waitTime - b.waitTime);
-    } else {
-      list = list.sort((a, b) => b.rating - a.rating);
-    }
-
-    this.filteredShops = list;
-    if (resetPage) {
-      this.setData(
-        {
-          page: 1,
-          shopList: [],
-          noMore: false
-        },
-        () => this.loadShopList()
-      );
-    } else {
-      this.setData(
-        {
-          noMore: false
-        },
-        () => this.loadShopList()
-      );
-    }
-  },
-
   // 加载商家列表
-  loadShopList() {
-    if (this.data.loading || this.data.noMore) return;
-    this.setData({ loading: true });
+  async loadShopList(reset: boolean = false) {
+    if (this.data.loading || (this.data.noMore && !reset)) return;
+    const nextPage = reset ? 1 : this.data.page;
+    this.setData({ loading: true, page: nextPage });
 
-    setTimeout(() => {
-      const start = (this.data.page - 1) * PAGE_SIZE;
-      const nextList = this.filteredShops.slice(start, start + PAGE_SIZE);
-      const merged =
-        this.data.page === 1
-          ? nextList
-          : [...this.data.shopList, ...nextList];
-      const noMore = start + nextList.length >= this.filteredShops.length;
-
+    try {
+      const res = await fetchCanteens({
+        page: nextPage,
+        pageSize: PAGE_SIZE,
+        keyword: (this.data.searchKeyword || '').trim(),
+        categoryId: this.data.selectedCategoryId,
+        sort: this.data.activeTab
+      });
+      const list = (res as any).list || [];
+      const merged = nextPage === 1 ? list : [...this.data.shopList, ...list];
+      const total = (res as any).total || merged.length;
+      const noMore = merged.length >= total || list.length < PAGE_SIZE;
       this.setData({
         loading: false,
         noMore,
         shopList: this.decorateFavoriteState(merged)
       });
-    }, 180);
+    } catch (error) {
+      this.setData({ loading: false });
+      wx.showToast({
+        title: '加载失败',
+        icon: 'none'
+      });
+    }
   },
 
   decorateFavoriteState(list: ShopItem[]) {
@@ -181,7 +147,7 @@ Page({
   // 收藏/取消收藏
   toggleFavorite(e: any) {
     const shopId = Number(e.currentTarget.dataset.id);
-    const shop = shopCatalog.find((item) => item.id === shopId);
+    const shop = this.data.shopList.find((item) => item.id === shopId);
     if (!shop) return;
     const nextFavorites = toggleFavoriteShop(shop);
     const isAdded = nextFavorites.some((item) => item.id === shopId);
