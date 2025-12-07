@@ -2,7 +2,7 @@ import { request } from './request';
 import { ShopItem } from './data';
 import { Category, GoodsItem, mockCanteenDetail, mockCanteenList, mockCreateOrder, mockOrders } from './mock';
 
-const USE_MOCK = true;
+const USE_MOCK = false;
 
 const unwrap = <T = any>(resp: any): T => {
   if (resp && typeof resp === 'object' && 'data' in resp) {

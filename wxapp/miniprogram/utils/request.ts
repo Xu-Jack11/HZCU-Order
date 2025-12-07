@@ -1,4 +1,5 @@
-const BASE_URL = 'https://api.example.com/v1';
+// 默认指向本地启动的 Spring Boot 后端，发布时可替换为线上域名
+const BASE_URL = 'http://localhost:8080/api/v1';
 const DEFAULT_TIMEOUT = 8000;
 
 interface RequestOptions extends WechatMiniprogram.RequestOption {
