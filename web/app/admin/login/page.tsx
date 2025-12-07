@@ -40,7 +40,7 @@ export default function AdminLoginPage() {
                             id="account"
                             className={styles.input}
                             type="text"
-                            placeholder="admin"
+                            placeholder="Please enter admin account"
                             value={formData.account}
                             onChange={(e) => setFormData({ ...formData, account: e.target.value })}
                             required
@@ -67,7 +67,7 @@ export default function AdminLoginPage() {
                     <div style={{ textAlign: 'center', marginTop: '1rem' }}>
                         <span style={{ fontSize: '0.8rem', color: 'var(--muted-foreground)' }}>
                             <ShieldCheck size={14} style={{ display: 'inline', marginRight: '4px', verticalAlign: 'text-bottom' }} />
-                            安全连接
+                            Security Connection
                         </span>
                     </div>
                 </form>

@@ -47,7 +47,7 @@ export default function AdminDashboardPage() {
             <div style={{ marginTop: '2rem', padding: '2rem', background: 'var(--card)', borderRadius: '1rem', border: '1px solid var(--border)' }}>
                 <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem' }}>平台趋势</h3>
                 <div style={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--muted)', borderRadius: '0.5rem', color: 'var(--muted-foreground)' }}>
-                    图表组件待集成 (Recharts/Chart.js)
+                    Chart Component Placeholder (Recharts/Chart.js)
                 </div>
             </div>
         </div>

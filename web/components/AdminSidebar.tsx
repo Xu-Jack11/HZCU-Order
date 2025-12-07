@@ -18,6 +18,7 @@ export default function AdminSidebar() {
     const router = useRouter();
 
     const handleLogout = () => {
+        // Implement logout logic here
         router.push('/admin/login');
     };
 
@@ -29,10 +30,11 @@ export default function AdminSidebar() {
             <nav className={styles.nav}>
                 {menuItems.map((item) => {
                     const Icon = item.icon;
-                    // Exact match for dashboard, startsWith for others
+                    // Exact match for dashboard, startsWith for others to handle sub-routes
                     const isActive = item.href === '/admin/dashboard'
                         ? pathname === '/admin/dashboard'
                         : pathname.startsWith(item.href);
+
                     return (
                         <Link
                             key={item.href}

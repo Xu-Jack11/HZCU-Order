@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Search, Ban, CheckCircle } from 'lucide-react';
+import { Search, Ban, CheckCircle, Edit2, X } from 'lucide-react';
 import styles from './page.module.css';
 
 interface User {
@@ -25,11 +25,30 @@ const initialUsers: User[] = [
 export default function UsersPage() {
     const [users, setUsers] = useState<User[]>(initialUsers);
     const [searchTerm, setSearchTerm] = useState('');
+    const [editingUser, setEditingUser] = useState<User | null>(null);
+    const [editForm, setEditForm] = useState({ phone: '' });
 
     const toggleStatus = (id: string) => {
         setUsers(prev => prev.map(u =>
             u.id === id ? { ...u, status: u.status === 'NORMAL' ? 'BANNED' : 'NORMAL' } : u
         ));
+    };
+
+    const handleEditUser = (user: User) => {
+        setEditingUser(user);
+        setEditForm({ phone: user.phone });
+    };
+
+    const saveUserEdit = () => {
+        if (!editingUser) return;
+        setUsers(prev => prev.map(u =>
+            u.id === editingUser.id ? { ...u, phone: editForm.phone } : u
+        ));
+        setEditingUser(null);
+    };
+
+    const closeModal = () => {
+        setEditingUser(null);
     };
 
     const filteredUsers = users.filter(user =>
@@ -111,6 +130,13 @@ export default function UsersPage() {
                                                 <CheckCircle size={14} style={{ marginRight: '4px' }} /> 解封
                                             </button>
                                         )}
+                                        <button
+                                            className={styles.actionBtn}
+                                            onClick={() => handleEditUser(user)}
+                                            style={{ marginLeft: '0.5rem' }}
+                                        >
+                                            <Edit2 size={14} style={{ marginRight: '4px' }} /> 编辑
+                                        </button>
                                     </td>
                                 </tr>
                             ))
@@ -118,6 +144,73 @@ export default function UsersPage() {
                     </tbody>
                 </table>
             </div>
+
+            {/* Edit User Modal */}
+            {editingUser && (
+                <div className={styles.modalOverlay} onClick={(e) => {
+                    if (e.target === e.currentTarget) closeModal();
+                }}>
+                    <div className={styles.modal} style={{ width: '400px' }}>
+                        <div className={styles.modalHeader}>
+                            <h3 className={styles.modalTitle}>编辑用户信息</h3>
+                            <button className={styles.closeBtn} onClick={closeModal}>
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <div className={styles.modalContent}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>
+                                        姓名
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={editingUser.name}
+                                        disabled
+                                        style={{ width: '100%', padding: '0.5rem', borderRadius: '0.375rem', border: '1px solid var(--border)', background: 'var(--muted)' }}
+                                    />
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>
+                                        学号
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={editingUser.studentId}
+                                        disabled
+                                        style={{ width: '100%', padding: '0.5rem', borderRadius: '0.375rem', border: '1px solid var(--border)', background: 'var(--muted)' }}
+                                    />
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>
+                                        手机号
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={editForm.phone}
+                                        onChange={e => setEditForm({ ...editForm, phone: e.target.value })}
+                                        style={{ width: '100%', padding: '0.5rem', borderRadius: '0.375rem', border: '1px solid var(--border)' }}
+                                    />
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '1rem' }}>
+                                    <button
+                                        onClick={closeModal}
+                                        style={{ padding: '0.5rem 1rem', borderRadius: '0.375rem', border: '1px solid var(--border)', background: 'transparent', cursor: 'pointer' }}
+                                    >
+                                        取消
+                                    </button>
+                                    <button
+                                        onClick={saveUserEdit}
+                                        style={{ padding: '0.5rem 1rem', borderRadius: '0.375rem', border: 'none', background: 'var(--primary)', color: 'white', cursor: 'pointer' }}
+                                    >
+                                        保存
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

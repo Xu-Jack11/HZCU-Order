@@ -1,0 +1,126 @@
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--foreground);
+}
+
+.controls {
+    display: flex;
+    gap: 1rem;
+}
+
+.datePicker {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    background: var(--card);
+    color: var(--foreground);
+}
+
+.exportBtn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    color: var(--foreground);
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.exportBtn:hover {
+    background-color: var(--muted);
+}
+
+.statsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.card {
+    background: var(--card);
+    padding: 1.5rem;
+    border-radius: 1rem;
+    border: 1px solid var(--border);
+}
+
+.cardLabel {
+    color: var(--muted-foreground);
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+}
+
+.cardValue {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: var(--foreground);
+    margin-bottom: 0.5rem;
+}
+
+.cardTrend {
+    font-size: 0.875rem;
+    color: var(--success-text);
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.section {
+    background: var(--card);
+    border-radius: 1rem;
+    border: 1px solid var(--border);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.sectionTitle {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th {
+    text-align: left;
+    padding: 1rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--muted-foreground);
+    font-weight: 500;
+    font-size: 0.875rem;
+}
+
+.table td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--foreground);
+    font-size: 0.925rem;
+}
+
+.amount {
+    font-family: monospace;
+    font-weight: 600;
+}
+
+.income {
+    color: var(--success);
+}
+
+.expense {
+    color: var(--error);
+}
