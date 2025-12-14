@@ -1,0 +1,232 @@
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--foreground);
+}
+
+.addButton {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: var(--primary);
+    color: white;
+    padding: 0.6rem 1.2rem;
+    border-radius: 0.5rem;
+    border: none;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.addButton:hover {
+    background-color: var(--primary-hover);
+}
+
+.tableWrapper {
+    background: var(--card);
+    border-radius: 1rem;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+
+.table th {
+    text-align: left;
+    padding: 1rem 1.5rem;
+    background-color: var(--muted);
+    color: var(--muted-foreground);
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--border);
+}
+
+.table td {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--card-foreground);
+    vertical-align: middle;
+}
+
+.table tr:last-child td {
+    border-bottom: none;
+}
+
+.table tr:hover {
+    background-color: #f8fafc;
+}
+
+.statusBadge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.6rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.statusActive {
+    background-color: var(--success-bg);
+    color: var(--success-text);
+}
+
+.statusInactive {
+    background-color: var(--error-bg);
+    color: var(--error-text);
+}
+
+.actionBtn {
+    background: transparent;
+    border: 1px solid var(--border);
+    padding: 0.4rem 0.8rem;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    font-size: 0.8rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-right: 0.5rem;
+    color: var(--foreground);
+    transition: all 0.2s;
+}
+
+.actionBtn:hover {
+    background-color: var(--muted);
+    border-color: var(--muted-foreground);
+}
+
+.deleteBtn {
+    color: var(--error-text);
+    border-color: rgba(239, 68, 68, 0.2);
+}
+
+.deleteBtn:hover {
+    background-color: var(--error-bg);
+    border-color: var(--error);
+}
+
+.canteenInfo {
+    display: flex;
+    flex-direction: column;
+}
+
+.canteenName {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--foreground);
+}
+
+.canteenAddress {
+    font-size: 0.8rem;
+    color: var(--muted-foreground);
+}
+
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 50;
+    backdrop-filter: blur(4px);
+}
+
+.modal {
+    background: var(--card);
+    border-radius: 1rem;
+    width: 600px;
+    max-width: 90%;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modalHeader {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modalTitle {
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.closeBtn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--muted-foreground);
+    padding: 0.5rem;
+    border-radius: 0.375rem;
+}
+
+.closeBtn:hover {
+    background-color: var(--muted);
+    color: var(--foreground);
+}
+
+.modalContent {
+    padding: 1.5rem;
+    overflow-y: auto;
+}
+
+.merchantItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    margin-bottom: 0.75rem;
+    background-color: var(--background);
+}
+
+.merchantInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.merchantName {
+    font-weight: 600;
+}
+
+.merchantStatus {
+    font-size: 0.75rem;
+    color: var(--muted-foreground);
+}
