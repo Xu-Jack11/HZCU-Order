@@ -65,6 +65,12 @@ Page({
     this.loadShopList(true);
   },
 
+  // 清空搜索
+  clearSearch() {
+    this.setData({ searchKeyword: '', page: 1, noMore: false, shopList: [] });
+    this.loadShopList(true);
+  },
+
   // 分类点击
   onCategoryTap(e: any) {
     const categoryId = Number(e.currentTarget.dataset.id);

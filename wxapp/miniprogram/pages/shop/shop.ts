@@ -2,7 +2,7 @@
 // 商家详情页
 import { fetchCanteenDetail } from '../../utils/api';
 import { getCartSnapshot, saveCartSnapshot, clearCartSnapshot } from '../../utils/cart';
-import { getShopById, ShopItem } from '../../utils/data';
+import { ShopItem } from '../../utils/data';
 import { isFavoriteShop, toggleFavoriteShop } from '../../utils/favorite';
 import { Category, GoodsItem } from '../../utils/mock';
 
@@ -39,10 +39,10 @@ Page({
   async loadShopInfo(shopId: number) {
     try {
       const res = await fetchCanteenDetail(shopId);
-      const baseShop = getShopById(shopId);
       this.setData(
         {
-          shopInfo: baseShop ? { ...baseShop, ...res.shopInfo } : res.shopInfo,
+          // 仅使用后端数据，不再混入内存 mock
+          shopInfo: res.shopInfo,
           isFavorite: isFavoriteShop(shopId),
           categories: res.categories || [],
           comments: res.comments || []
@@ -196,8 +196,8 @@ Page({
 
   // 收藏/取消收藏
   toggleFavorite() {
-    const shopDetail: ShopItem | null = getShopById(this.data.shopId);
-    if (!shopDetail) return;
+    const shopDetail: ShopItem | undefined = this.data.shopInfo as ShopItem;
+    if (!shopDetail || !shopDetail.id) return;
     const favorites = toggleFavoriteShop(shopDetail);
     const isFavorite = favorites.some((item) => item.id === shopDetail.id);
     this.setData({ isFavorite });

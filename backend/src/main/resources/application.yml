@@ -6,3 +6,22 @@ server:
 spring:
   application:
     name: hzcu-order-backend
+  datasource:
+    url: jdbc:mysql://localhost:3306/diancan?useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true&autoReconnect=true&serverTimezone=Asia/Shanghai
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      initialization-fail-timeout: -1  # 数据库不可用时不让应用启动失败，连接在首次使用时再尝试
+      connection-timeout: 3000
+      maximum-pool-size: 5
+      minimum-idle: 1
+      pool-name: hzcu-order-hikari
+  jdbc:
+    template:
+      fetch-size: 200
+      max-rows: 10000
+
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true

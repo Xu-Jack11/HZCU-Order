@@ -82,7 +82,13 @@ Page({
         page: this.data.page,
         pageSize: PAGE_SIZE
       });
-      const list = res?.list || [];
+      // 统一过滤掉已取消订单（兼容不同后端命名/大小写/文案）
+      const list = (res?.list || []).filter((item: any) => {
+        const status = String(item.status || '').toLowerCase();
+        const text = String(item.statusText || '');
+        const isCanceled = status === 'canceled' || status === 'cancelled' || /取消/.test(text);
+        return !isCanceled;
+      });
       const merged =
         this.data.page === 1 ? list : [...this.data.orderList, ...list];
       const total = res?.total || merged.length;
@@ -114,7 +120,7 @@ Page({
 
   // 跳转订单详情
   goOrderDetail(e: any) {
-    const orderId = e.currentTarget.dataset.id;
+    const orderId = Number(e.currentTarget.dataset.id);
     const order = this.data.orderList.find((item) => item.id === orderId);
     if (!order) return;
     wx.showModal({
@@ -126,7 +132,7 @@ Page({
 
   // 取消订单
   cancelOrder(e: any) {
-    const orderId = e.currentTarget.dataset.id;
+    const orderId = Number(e.currentTarget.dataset.id);
     wx.showModal({
       title: '提示',
       content: '确定要取消这个订单吗？',
@@ -138,6 +144,13 @@ Page({
               title: '订单已取消',
               icon: 'success'
             });
+            // 立即从当前列表中移除该订单，确保界面即时消失；并标记为已取消
+            const updated = this.data.orderList.map((item) =>
+              item.id === orderId ? { ...item, status: 'canceled', statusText: '已取消' } : item
+            );
+            const filtered = updated.filter((item) => item.id !== orderId);
+            this.setData({ orderList: filtered });
+            // 同步刷新列表以防分页/统计需要服务端最新数据
             this.refreshList();
           } catch (error) {
             wx.showToast({
@@ -152,13 +165,21 @@ Page({
 
   // 去付款
   async payOrder(e: any) {
-    const orderId = e.currentTarget.dataset.id;
+    const orderId = Number(e.currentTarget.dataset.id);
     try {
       await payOrder(orderId);
       wx.showToast({
         title: '已模拟支付',
         icon: 'success'
       });
+      // 本地状态迁移：pending -> preparing；如果当前tab是待付款，则移除该订单
+      const moved = this.data.orderList.map((item) =>
+        item.id === orderId ? { ...item, status: 'preparing', statusText: '制作中' } : item
+      );
+      const shouldRemove = this.data.activeStatus === 'pending';
+      const nextList = shouldRemove ? moved.filter((item) => item.id !== orderId) : moved;
+      this.setData({ orderList: nextList });
+      // 同步刷新服务端数据，确保分页/总数正确
       this.refreshList();
     } catch (error) {
       wx.showToast({
@@ -170,7 +191,7 @@ Page({
 
   // 再来一单
   reOrder(e: any) {
-    const orderId = e.currentTarget.dataset.id;
+    const orderId = Number(e.currentTarget.dataset.id);
     const order = this.data.orderList.find((o) => o.id === orderId);
     if (order) {
       wx.navigateTo({
@@ -189,7 +210,7 @@ Page({
 
   // 确认取餐
   confirmPickup(e: any) {
-    const orderId = e.currentTarget.dataset.id;
+    const orderId = Number(e.currentTarget.dataset.id);
     wx.showModal({
       title: '提示',
       content: '确认已取餐吗？',
@@ -201,6 +222,14 @@ Page({
               title: '已确认取餐',
               icon: 'success'
             });
+            // 本地状态迁移：ready -> completed；如果当前tab是待取餐，则移除该订单
+            const moved = this.data.orderList.map((item) =>
+              item.id === orderId ? { ...item, status: 'completed', statusText: '已完成' } : item
+            );
+            const shouldRemove = this.data.activeStatus === 'ready';
+            const nextList = shouldRemove ? moved.filter((item) => item.id !== orderId) : moved;
+            this.setData({ orderList: nextList });
+            // 同步刷新服务端数据
             this.refreshList();
           } catch (error) {
             wx.showToast({

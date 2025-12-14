@@ -1,41 +1,39 @@
 package com.hzcu.order.service;
 
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Locale;
+import java.util.stream.Collectors;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+import org.springframework.web.server.ResponseStatusException;
+
 import com.hzcu.order.common.PageResult;
 import com.hzcu.order.data.DataStore;
 import com.hzcu.order.dto.CreateOrderRequest;
 import com.hzcu.order.model.Order;
 import com.hzcu.order.model.OrderGoods;
 import com.hzcu.order.model.Shop;
-import java.time.LocalDateTime;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
-import java.util.stream.Collectors;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
-import org.springframework.web.server.ResponseStatusException;
+import com.hzcu.order.repository.OrderJdbcRepository;
 
 @Service
 public class OrderService {
 
   private final DataStore dataStore;
+  private final OrderJdbcRepository orderRepo;
 
-  public OrderService(DataStore dataStore) {
+  public OrderService(DataStore dataStore, OrderJdbcRepository orderRepo) {
     this.dataStore = dataStore;
+    this.orderRepo = orderRepo;
   }
 
   public PageResult<Order> listOrders(String status, int page, int pageSize) {
-    List<Order> filtered = dataStore.getOrders().stream()
-        .filter(order -> !StringUtils.hasText(status) || "all".equalsIgnoreCase(status)
-            || order.getStatus().equalsIgnoreCase(status))
-        .sorted(Comparator.comparing(Order::getCreateTime).reversed())
-        .collect(Collectors.toList());
-
-    int fromIndex = Math.max((page - 1) * pageSize, 0);
-    int toIndex = Math.min(fromIndex + pageSize, filtered.size());
-    List<Order> paged = fromIndex >= filtered.size() ? List.of() : filtered.subList(fromIndex, toIndex);
-    return new PageResult<>(paged, filtered.size());
+    // Switch to DB repository
+    List<Order> paged = orderRepo.findAll(status, page, pageSize);
+    int total = orderRepo.count(status);
+    return new PageResult<>(paged, total);
   }
 
   public Order createOrder(CreateOrderRequest request) {
@@ -68,41 +66,56 @@ public class OrderService {
     order.setPickupTime(request.getPickupTime());
     order.setRemark(request.getRemark());
 
-    return dataStore.addOrder(order);
+    // Save to DB instead of memory
+    return orderRepo.create(order);
   }
 
   public Order cancel(long orderId) {
-    Order order = findOrder(orderId);
+    Order order = orderRepo.findById(orderId);
+    if (order == null) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "order not found");
+    }
     if ("completed".equalsIgnoreCase(order.getStatus()) || "canceled".equalsIgnoreCase(order.getStatus())) {
       return order;
     }
-    order.setStatus("canceled");
-    order.setStatusText(resolveStatusText("canceled"));
+    String nextStatus = "canceled";
+    String nextText = resolveStatusText(nextStatus);
+    orderRepo.updateStatus(orderId, nextStatus, nextText);
+    order.setStatus(nextStatus);
+    order.setStatusText(nextText);
     return order;
   }
 
   public Order pay(long orderId) {
-    Order order = findOrder(orderId);
+    Order order = orderRepo.findById(orderId);
+    if (order == null) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "order not found");
+    }
     if ("pending".equalsIgnoreCase(order.getStatus())) {
-      order.setStatus("preparing");
-      order.setStatusText(resolveStatusText("preparing"));
+      String nextStatus = "preparing";
+      String nextText = resolveStatusText(nextStatus);
+      orderRepo.updateStatus(orderId, nextStatus, nextText);
+      order.setStatus(nextStatus);
+      order.setStatusText(nextText);
     }
     return order;
   }
 
   public Order complete(long orderId) {
-    Order order = findOrder(orderId);
-    order.setStatus("completed");
-    order.setStatusText(resolveStatusText("completed"));
+    Order order = orderRepo.findById(orderId);
+    if (order == null) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "order not found");
+    }
+    String nextStatus = "completed";
+    String nextText = resolveStatusText(nextStatus);
+    orderRepo.updateStatus(orderId, nextStatus, nextText);
+    order.setStatus(nextStatus);
+    order.setStatusText(nextText);
     return order;
   }
 
-  private Order findOrder(long orderId) {
-    return dataStore.getOrders().stream()
-        .filter(o -> o.getId() == orderId)
-        .findFirst()
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "order not found"));
-  }
+  // Deprecated: switched to JDBC repository for persistence
+  // private Order findOrder(long orderId) { ... }
 
   private String resolveStatusText(String status) {
     if (!StringUtils.hasText(status)) {

@@ -1,27 +1,36 @@
 package com.hzcu.order.service;
 
+import java.util.Comparator;
+import java.util.List;
+import java.util.Locale;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+import org.springframework.web.server.ResponseStatusException;
+
 import com.hzcu.order.common.PageResult;
 import com.hzcu.order.data.DataStore;
 import com.hzcu.order.model.Comment;
 import com.hzcu.order.model.DishCategory;
 import com.hzcu.order.model.HomeFeed;
 import com.hzcu.order.model.Shop;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
-import java.util.stream.Collectors;
-import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
-import org.springframework.web.server.ResponseStatusException;
-import org.springframework.http.HttpStatus;
+import com.hzcu.order.repository.DishJdbcRepository;
+import com.hzcu.order.repository.ShopJdbcRepository;
 
 @Service
 public class CanteenService {
 
   private final DataStore dataStore;
+  private final ObjectProvider<ShopJdbcRepository> shopRepoProvider;
+  private final DishJdbcRepository dishRepo;
 
-  public CanteenService(DataStore dataStore) {
+  public CanteenService(DataStore dataStore, ObjectProvider<ShopJdbcRepository> shopRepoProvider, DishJdbcRepository dishRepo) {
     this.dataStore = dataStore;
+    this.shopRepoProvider = shopRepoProvider;
+    this.dishRepo = dishRepo;
   }
 
   public HomeFeed getHomeFeed() {
@@ -34,7 +43,8 @@ public class CanteenService {
   }
 
   public PageResult<Shop> queryCanteens(int page, int pageSize, String keyword, Integer categoryId, String sort) {
-    List<Shop> filtered = dataStore.getShops().stream()
+    List<Shop> source = getShopSource();
+    List<Shop> filtered = source.stream()
         .filter(shop -> categoryId == null || categoryId == 0 || shop.getCategoryIds().contains(categoryId))
         .filter(shop -> {
           if (!StringUtils.hasText(keyword)) {
@@ -54,19 +64,69 @@ public class CanteenService {
     return new PageResult<>(paged, filtered.size());
   }
 
+  // 仅从数据库读取，不再回退到内存数据
+  private List<Shop> getShopSource() {
+    try {
+      ShopJdbcRepository shopRepo = shopRepoProvider.getIfAvailable();
+      if (shopRepo != null) {
+        return shopRepo.findAll();
+      }
+    } catch (Exception e) {
+      e.printStackTrace(); // 打印错误日志以便排查
+    }
+    // 数据库不可用或查询失败，返回空列表，不显示假数据
+    return List.of();
+  }
+
   public Shop getShop(long shopId) {
-    return dataStore.findShop(shopId)
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "canteen not found"));
+    ShopJdbcRepository repo = shopRepoProvider.getIfAvailable();
+    if (repo != null) {
+      try {
+        Shop dbShop = repo.findById(shopId);
+        if (dbShop != null) {
+          return dbShop;
+        }
+      } catch (Exception ignore) {
+      }
+    }
+    // 数据库查不到直接抛出 404，不再查内存
+    throw new ResponseStatusException(HttpStatus.NOT_FOUND, "canteen not found");
   }
 
   public List<DishCategory> getDishCategories(long shopId) {
     ensureShopExists(shopId);
+    
+    // Try DB first
+    try {
+        List<DishCategory> categories = dishRepo.findCategoriesByShopId(shopId);
+        if (categories != null && !categories.isEmpty()) {
+            for (DishCategory cat : categories) {
+                cat.setGoods(dishRepo.findDishesByCategoryId(cat.getId()));
+            }
+            return categories;
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+
     return dataStore.getDishCategories(shopId);
   }
 
   public List<Comment> getComments(long shopId) {
     ensureShopExists(shopId);
     return dataStore.getComments(shopId);
+  }
+
+  public Shop createShop(String name, String logo, double rating) {
+    ShopJdbcRepository repo = shopRepoProvider.getIfAvailable();
+    if (repo == null) {
+      throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "database repository not available");
+    }
+    try {
+      return repo.create(name, logo, rating);
+    } catch (Exception e) {
+      throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "create shop failed");
+    }
   }
 
   private Comparator<Shop> getComparator(String sort) {
@@ -100,8 +160,7 @@ public class CanteenService {
   }
 
   private void ensureShopExists(long shopId) {
-    if (dataStore.findShop(shopId).isEmpty()) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "canteen not found");
-    }
+    // Reuse getShop logic which checks DB
+    getShop(shopId);
   }
 }

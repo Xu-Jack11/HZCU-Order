@@ -13,7 +13,8 @@
   <view class="search-bar">
     <view class="search-input-wrap">
       <image class="search-icon" src="/images/search.png" mode="aspectFit"></image>
-      <input class="search-input" placeholder="今天吃点啥" placeholder-class="placeholder" bindinput="onSearchInput" value="{{searchKeyword}}" />
+      <input class="search-input" placeholder="今天吃点啥" placeholder-class="placeholder" bindinput="onSearchInput" bindconfirm="onSearch" confirm-type="search" value="{{searchKeyword}}" />
+      <view class="clear-icon" wx:if="{{searchKeyword && searchKeyword.length > 0}}" catchtap="clearSearch">✕</view>
     </view>
     <view class="search-btn" bindtap="onSearch">搜索</view>
   </view>

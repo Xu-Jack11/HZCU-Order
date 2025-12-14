@@ -11,9 +11,9 @@ Page({
       phone: ''
     },
     orderCount: {
-      pending: 2,
-      preparing: 1,
-      ready: 1
+      pending: 0,
+      preparing: 0,
+      ready: 0
     },
     couponCount: 3
   },
@@ -40,8 +40,29 @@ Page({
 
   // 加载订单数量
   loadOrderCount() {
-    // 这里应该调用API获取各状态订单数量
-    // 目前使用模拟数据
+    // 依据后端分页返回的 total 统计各状态数量
+    const fetchOrders = (status: string) => new Promise<number>((resolve) => {
+      wx.request({
+        url: 'http://localhost:8080/api/v1/orders',
+        method: 'GET',
+        data: { status, page: 1, pageSize: 1 },
+        success: (res) => {
+          const total = (res?.data?.data?.total) ?? 0;
+          resolve(Number(total) || 0);
+        },
+        fail: () => resolve(0)
+      });
+    });
+
+    Promise.all([
+      fetchOrders('pending'),
+      fetchOrders('preparing'),
+      fetchOrders('ready')
+    ]).then(([pending, preparing, ready]) => {
+      this.setData({
+        orderCount: { pending, preparing, ready }
+      });
+    });
   },
 
   // 登录
@@ -77,6 +98,11 @@ Page({
   // 订单列表
   goOrderList(e: any) {
     const status = e.currentTarget.dataset.status;
+    wx.showToast({
+      title: '123',
+      icon: 'none',
+      duration: 1000
+    });
     wx.setStorageSync('orderStatus', status);
     wx.switchTab({
       url: '/pages/order/order'

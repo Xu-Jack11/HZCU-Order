@@ -68,6 +68,15 @@ export const fetchCanteens = async (params: { page: number; pageSize: number; ke
   return unwrap(resp);
 };
 
+export const createCanteen = async (payload: { name: string; logo: string; rating?: number }) => {
+  const resp = await request({
+    url: '/canteens',
+    method: 'POST',
+    data: payload
+  });
+  return unwrap(resp);
+};
+
 export const fetchCanteenDetail = async (canteenId: number): Promise<CanteenDetailResponse> => {
   if (USE_MOCK) {
     return mockCanteenDetail(canteenId);
