@@ -2,7 +2,7 @@
 <view class="container">
   <!-- 用户信息 -->
   <view class="user-header">
-    <view class="user-info" bindtap="goLogin" wx:if="{{!isLogin}}">
+    <view class="user-info" bindtap="goBindPhone" wx:if="{{!isLogin}}">
       <image class="user-avatar" src="/images/default-avatar.png" mode="aspectFill"></image>
       <view class="user-text">
         <text class="login-hint">点击登录</text>
@@ -10,12 +10,14 @@
       </view>
     </view>
     <view class="user-info" wx:else>
-      <image class="user-avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
+      <image class="user-avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill" bindtap="goBindPhone"></image>
       <view class="user-text">
         <text class="user-name">{{userInfo.nickName}}</text>
         <text class="user-phone">{{userInfo.phone}}</text>
       </view>
     </view>
+    <!-- 登录后但未绑定手机号，提供测试绑定按钮 -->
+    <button class="bind-phone-btn" wx:if="{{isLogin && !userInfo.phone}}" bindtap="goBindPhone">绑定手机号</button>
     <image class="setting-icon" src="/images/setting.png" mode="aspectFit" bindtap="goSetting"></image>
   </view>
 

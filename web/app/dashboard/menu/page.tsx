@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Plus, Edit2, Trash2, X, Search, Upload, ImageIcon } from 'lucide-react';
 import styles from './page.module.css';
+import { api } from '@/lib/api';
 
 interface Dish {
     id: string;
@@ -15,23 +16,20 @@ interface Dish {
     image?: string;
 }
 
-const initialDishes: Dish[] = [
-    { id: '1', name: '红烧肉套餐', price: 25.0, category: '套餐', isAvailable: true, sales: 120, description: '精选五花肉，配米饭和时蔬', image: 'https://images.unsplash.com/photo-1623689046286-adce87bfd64c?w=200&h=200&fit=crop' },
-    { id: '2', name: '番茄炒蛋', price: 12.0, category: '热菜', isAvailable: true, sales: 85, description: '新鲜番茄搭配农家土鸡蛋', image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200&h=200&fit=crop' },
-    { id: '3', name: '牛肉面', price: 18.0, category: '面食', isAvailable: false, sales: 200, description: '手工拉面配卤牛肉', image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=200&h=200&fit=crop' },
-    { id: '4', name: '可乐', price: 3.0, category: '饮料', isAvailable: true, sales: 300, description: '冰镇可口可乐 330ml', image: 'https://images.unsplash.com/photo-1629203851122-3726ecdf080e?w=200&h=200&fit=crop' },
-    { id: '5', name: '宫保鸡丁', price: 16.0, category: '热菜', isAvailable: true, sales: 95, description: '川味经典，微辣口感', image: 'https://images.unsplash.com/photo-1525755662778-989d0524087e?w=200&h=200&fit=crop' },
-    { id: '6', name: '蛋炒饭', price: 10.0, category: '主食', isAvailable: true, sales: 180, description: '粒粒分明，蛋香浓郁', image: 'https://images.unsplash.com/photo-1603133872878-684f208fb84b?w=200&h=200&fit=crop' },
-];
-
-const categories = ['全部', '套餐', '热菜', '面食', '主食', '饮料'];
+// 记录未保存的改动
+const categoriesDefault = ['全部'];
 
 export default function MenuPage() {
-    const [dishes, setDishes] = useState<Dish[]>(initialDishes);
+    const [dishes, setDishes] = useState<Dish[]>([]);
     const [showModal, setShowModal] = useState(false);
     const [editingDish, setEditingDish] = useState<Dish | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('全部');
+    const [categories, setCategories] = useState<string[]>(categoriesDefault);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [error, setError] = useState<string | null>(null);
+    const [shopId, setShopId] = useState<string>('');
+    const [pendingEdits, setPendingEdits] = useState<Record<string, { name?: string; price?: number; category?: string }>>({});
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Form state
@@ -43,10 +41,17 @@ export default function MenuPage() {
         image: ''
     });
 
-    const toggleStatus = (id: string) => {
-        setDishes(prev => prev.map(d =>
-            d.id === id ? { ...d, isAvailable: !d.isAvailable } : d
-        ));
+    const toggleStatus = async (id: string) => {
+        const target = dishes.find(d => d.id === id);
+        if (!target) return;
+        try {
+            await api.updateDishAvailability(id, !target.isAvailable);
+            setDishes(prev => prev.map(d =>
+                d.id === id ? { ...d, isAvailable: !d.isAvailable } : d
+            ));
+        } catch (e) {
+            alert('更新上架状态失败');
+        }
     };
 
     const handleDelete = (id: string) => {
@@ -73,6 +78,15 @@ export default function MenuPage() {
         setShowModal(true);
     };
 
+    // 行内编辑：记录改动并同步到列表展示
+    const setEditField = (dishId: string, field: 'name' | 'price' | 'category', value: any) => {
+        setPendingEdits(prev => ({
+            ...prev,
+            [dishId]: { ...(prev[dishId] || {}), [field]: value }
+        }));
+        setDishes(prev => prev.map(d => d.id === dishId ? { ...d, [field]: value } : d));
+    };
+
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
@@ -86,15 +100,27 @@ export default function MenuPage() {
         }
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        const payload = {
+            name: formData.name,
+            price: parseFloat(formData.price),
+            description: formData.description,
+            image: formData.image,
+            // categoryId 需要从后端分类映射，这里暂留
+        } as any;
         if (editingDish) {
-            // Edit existing dish
-            setDishes(prev => prev.map(d =>
-                d.id === editingDish.id
-                    ? { ...d, name: formData.name, price: parseFloat(formData.price), category: formData.category, description: formData.description, image: formData.image }
-                    : d
-            ));
+            try {
+                await api.updateDish(editingDish.id, payload);
+                setDishes(prev => prev.map(d =>
+                    d.id === editingDish.id
+                        ? { ...d, name: formData.name, price: parseFloat(formData.price), category: formData.category, description: formData.description, image: formData.image }
+                        : d
+                ));
+            } catch (e) {
+                alert('保存菜品失败');
+                return;
+            }
         } else {
             // Add new dish
             const newDish: Dish = {
@@ -112,6 +138,79 @@ export default function MenuPage() {
         setShowModal(false);
     };
 
+    // 保存单个菜的改动
+    const onSaveDish = async (dishId: string) => {
+        const edits = pendingEdits[dishId];
+        if (!edits || Object.keys(edits).length === 0) {
+            alert('没有改动需要保存');
+            return;
+        }
+        try {
+            await api.updateDish(dishId, edits);
+            setPendingEdits(prev => {
+                const next = { ...prev };
+                delete next[dishId];
+                return next;
+            });
+            alert('已保存');
+        } catch (e: any) {
+            alert(e.message || '保存失败');
+        }
+    };
+
+    // 保存全部改动
+    const onSaveAll = async () => {
+        const ids = Object.keys(pendingEdits);
+        if (ids.length === 0) {
+            alert('没有改动需要保存');
+            return;
+        }
+        try {
+            for (const id of ids) {
+                await api.updateDish(id, pendingEdits[id]!);
+            }
+            setPendingEdits({});
+            alert('全部改动已保存');
+        } catch (e: any) {
+            alert(e.message || '部分保存失败，请重试');
+        }
+    };
+
+    // 初始化：选择一个商家并加载其菜品
+    useEffect(() => {
+        const init = async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                const page = await api.listCanteensPaged(1, 1);
+                const first = page.list?.[0];
+                const sid = String(first?.id || '');
+                setShopId(sid);
+                if (sid) {
+                    const cats = await api.getShopDishes(sid, 1, 10000);
+                    const catNames = ['全部', ...cats.map(c => String(c.name))];
+                    setCategories(catNames);
+                    const items: Dish[] = cats.flatMap(c => (c.goods || []).map(g => ({
+                        id: String(g.id),
+                        name: g.name,
+                        price: g.price,
+                        category: String(c.name),
+                        isAvailable: true,
+                        sales: (g.monthlySales as any) || 0,
+                        description: g.description,
+                        image: g.image,
+                    })));
+                    setDishes(items);
+                }
+            } catch (e: any) {
+                setError(e?.message || '加载菜品失败');
+            } finally {
+                setLoading(false);
+            }
+        };
+        init();
+    }, []);
+
     const filteredDishes = dishes.filter(dish => {
         const matchesSearch = dish.name.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesCategory = selectedCategory === '全部' || dish.category === selectedCategory;
@@ -122,9 +221,14 @@ export default function MenuPage() {
         <div>
             <div className={styles.header}>
                 <h2 className={styles.title}>菜品管理</h2>
-                <button className={styles.addButton} onClick={openAddModal}>
-                    <Plus size={16} /> 新增菜品
-                </button>
+                <div style={{ display: 'flex', gap: 8 }}>
+                    <button className={styles.addButton} onClick={openAddModal}>
+                        <Plus size={16} /> 新增菜品
+                    </button>
+                    <button className={styles.addButton} onClick={onSaveAll}>
+                        保存全部改动
+                    </button>
+                </div>
             </div>
 
             {/* Filters */}
@@ -153,6 +257,12 @@ export default function MenuPage() {
             </div>
 
             <div className={styles.tableWrapper}>
+                {error && (
+                    <div style={{ color: '#c00', padding: '0.5rem 1rem' }}>{error}</div>
+                )}
+                {loading && (
+                    <div style={{ color: '#666', padding: '0.5rem 1rem' }}>加载中...</div>
+                )}
                 <table className={styles.table}>
                     <thead>
                         <tr>
@@ -186,12 +296,25 @@ export default function MenuPage() {
                                             )}
                                         </div>
                                     </td>
-                                    <td>
-                                        <div className={styles.dishName}>{dish.name}</div>
-                                        {dish.description && <div className={styles.dishDesc}>{dish.description}</div>}
-                                    </td>
+                                     <td>
+                                         <input
+                                             className={styles.inlineInput}
+                                             value={dish.name}
+                                             onChange={(e) => setEditField(dish.id, 'name', e.target.value)}
+                                         />
+                                         {dish.description && <div className={styles.dishDesc}>{dish.description}</div>}
+                                     </td>
                                     <td><span className={styles.categoryBadge}>{dish.category}</span></td>
-                                    <td className={styles.price}>¥{dish.price.toFixed(2)}</td>
+                                     <td className={styles.price}>
+                                         ¥
+                                         <input
+                                             className={styles.inlineInput}
+                                             type="number"
+                                             step="0.01"
+                                             value={dish.price}
+                                             onChange={(e) => setEditField(dish.id, 'price', parseFloat(e.target.value || '0'))}
+                                         />
+                                     </td>
                                     <td>{dish.sales}</td>
                                     <td>
                                         <button
@@ -202,7 +325,10 @@ export default function MenuPage() {
                                         </button>
                                     </td>
                                     <td>
-                                        <button className={styles.actionBtn} onClick={() => openEditModal(dish)}>
+                                         <button className={styles.actionBtn} onClick={() => onSaveDish(dish.id)}>
+                                             保存
+                                         </button>
+                                         <button className={styles.actionBtn} onClick={() => openEditModal(dish)}>
                                             <Edit2 size={14} /> 编辑
                                         </button>
                                         <button className={`${styles.actionBtn} ${styles.deleteBtn}`} onClick={() => handleDelete(dish.id)}>

@@ -1,17 +1,20 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Plus, Edit2, Trash2, Power, Store, X } from 'lucide-react';
 import styles from './page.module.css';
+import { api } from '@/lib/api';
 
 interface Canteen {
     id: string;
     name: string;
-    address: string;
-    managerName: string;
-    phone: string;
+    address?: string;
+    managerName?: string;
+    phone?: string;
     status: 'ACTIVE' | 'INACTIVE';
-    rating: number;
+    rating?: number;
+    monthlySales?: number;
+    logo?: string;
 }
 
 interface Merchant {
@@ -20,22 +23,23 @@ interface Merchant {
     status: 'OPERATING' | 'CLOSED';
 }
 
-const initialCanteens: Canteen[] = [
-    { id: '1', name: 'HZCU No.1 Canteen', address: 'South Campus Living Area', managerName: 'Manager Zhang', phone: '13800138000', status: 'ACTIVE', rating: 4.8 },
-    { id: '2', name: 'HZCU No.2 Canteen', address: 'North Campus Teaching Building', managerName: 'Manager Li', phone: '13900139000', status: 'ACTIVE', rating: 4.5 },
-    { id: '3', name: 'Muslim Restaurant', address: 'No.1 Canteen 2nd Floor', managerName: 'Manager Wang', phone: '13700137000', status: 'INACTIVE', rating: 4.2 },
-];
+const initialCanteens: Canteen[] = [];
 
 // Mock merchants data
 const mockMerchants: Record<string, Merchant[]> = {
     '1': [
-        { id: 'm1', name: 'Zhang\'s Noodle House', status: 'OPERATING' },
-        { id: 'm2', name: 'Delicious Clay Pot', status: 'OPERATING' },
+        { id: 'm1', name: '前台账号', status: 'OPERATING' },
+        { id: 'm2', name: '后厨账号', status: 'OPERATING' },
     ],
     '2': [
-        { id: 'm3', name: 'Juicy Burger', status: 'OPERATING' },
+        { id: 'm3', name: '堂食窗口', status: 'OPERATING' },
     ],
-    '3': [],
+    '3': [
+        { id: 'm4', name: '饮品吧台', status: 'OPERATING' },
+    ],
+    '4': [
+        { id: 'm5', name: '外卖账号', status: 'OPERATING' },
+    ],
 };
 
 export default function CanteensPage() {
@@ -45,6 +49,36 @@ export default function CanteensPage() {
 
     const [editingCanteen, setEditingCanteen] = useState<Canteen | null>(null);
     const [editForm, setEditForm] = useState({ phone: '', managerName: '' });
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const load = async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                const res = await api.getShops(1, 1000);
+                const list = Array.isArray(res) ? res : res.list;
+                const mapped: Canteen[] = (list || []).map((s: any) => ({
+                    id: String(s.id),
+                    name: s.name,
+                    address: s.address || '',
+                    managerName: s.manager || '',
+                    phone: s.phone || '',
+                    status: 'ACTIVE',
+                    rating: s.rating,
+                    monthlySales: s.monthlySales ?? s.monthly_sales,
+                    logo: s.logo,
+                }));
+                setCanteens(mapped);
+            } catch (e: any) {
+                setError(e.message || '加载商铺失败');
+            } finally {
+                setLoading(false);
+            }
+        };
+        load();
+    }, []);
 
     const toggleStatus = (id: string) => {
         setCanteens(prev => prev.map(c =>
@@ -93,20 +127,23 @@ export default function CanteensPage() {
     return (
         <div>
             <div className={styles.header}>
-                <h2 className={styles.title}>食堂管理</h2>
+                <h2 className={styles.title}>商铺管理</h2>
                 <button className={styles.addButton}>
-                    <Plus size={18} /> 新增食堂
+                    <Plus size={18} /> 新增商铺
                 </button>
             </div>
 
             <div className={styles.tableWrapper}>
+                {loading && <div style={{ padding: '0.5rem 1rem', color: '#64748b' }}>加载中...</div>}
+                {error && <div style={{ padding: '0.5rem 1rem', color: '#b91c1c' }}>错误：{error}</div>}
                 <table className={styles.table}>
                     <thead>
                         <tr>
-                            <th>食堂名称/地址</th>
+                            <th>商铺</th>
                             <th>负责人</th>
                             <th>联系电话</th>
                             <th>评分</th>
+                            <th>月售</th>
                             <th>状态</th>
                             <th>操作</th>
                         </tr>
@@ -116,13 +153,19 @@ export default function CanteensPage() {
                             <tr key={canteen.id}>
                                 <td>
                                     <div className={styles.canteenInfo}>
-                                        <span className={styles.canteenName}>{canteen.name}</span>
-                                        <span className={styles.canteenAddress}>{canteen.address}</span>
+                                        {canteen.logo ? (
+                                            <img src={canteen.logo} alt={canteen.name} style={{ width: 40, height: 40, borderRadius: 6, objectFit: 'cover', marginRight: 8 }} />
+                                        ) : null}
+                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                            <span className={styles.canteenName}>{canteen.name}</span>
+                                            <span className={styles.canteenAddress}>{canteen.address || '—'}</span>
+                                        </div>
                                     </div>
                                 </td>
-                                <td>{canteen.managerName}</td>
-                                <td>{canteen.phone}</td>
-                                <td>⭐ {canteen.rating}</td>
+                                <td>{canteen.managerName || '—'}</td>
+                                <td>{canteen.phone || '—'}</td>
+                                <td>⭐ {canteen.rating ?? '-'}</td>
+                                <td>{canteen.monthlySales ?? '-'}</td>
                                 <td>
                                     <span className={`${styles.statusBadge} ${canteen.status === 'ACTIVE' ? styles.statusActive : styles.statusInactive}`}>
                                         {canteen.status === 'ACTIVE' ? '营业中' : '已停业'}
@@ -166,7 +209,7 @@ export default function CanteensPage() {
                 }}>
                     <div className={styles.modal}>
                         <div className={styles.modalHeader}>
-                            <h3 className={styles.modalTitle}>商家管理 - {activeCanteen.name}</h3>
+                            <h3 className={styles.modalTitle}>账号管理 - {activeCanteen.name}</h3>
                             <button className={styles.closeBtn} onClick={closeModal}>
                                 <X size={20} />
                             </button>
@@ -180,7 +223,7 @@ export default function CanteensPage() {
 
                             {(merchants[selectedCanteenId] || []).length === 0 ? (
                                 <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--muted-foreground)' }}>
-                                    该食堂暂无入驻商家
+                                    该商铺暂无账号
                                 </div>
                             ) : (
                                 (merchants[selectedCanteenId] || []).map(merchant => (
@@ -210,7 +253,7 @@ export default function CanteensPage() {
                 }}>
                     <div className={styles.modal} style={{ width: '400px' }}>
                         <div className={styles.modalHeader}>
-                            <h3 className={styles.modalTitle}>编辑食堂信息</h3>
+                            <h3 className={styles.modalTitle}>编辑商铺信息</h3>
                             <button className={styles.closeBtn} onClick={closeModal}>
                                 <X size={20} />
                             </button>
@@ -219,7 +262,7 @@ export default function CanteensPage() {
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                                 <div>
                                     <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>
-                                        食堂名称
+                                        商铺名称
                                     </label>
                                     <input
                                         type="text"

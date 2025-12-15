@@ -90,6 +90,11 @@ Page({
     });
   },
 
+  // 跳转绑定手机号页面
+  goBindPhone() {
+    wx.navigateTo({ url: '/pages/login/login' });
+  },
+
   // 设置
   goSetting() {
     wx.openSetting({});

@@ -1,12 +1,5 @@
 package com.hzcu.order.data;
 
-import com.hzcu.order.model.Comment;
-import com.hzcu.order.model.Dish;
-import com.hzcu.order.model.DishCategory;
-import com.hzcu.order.model.Order;
-import com.hzcu.order.model.OrderGoods;
-import com.hzcu.order.model.Shop;
-import jakarta.annotation.PostConstruct;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -15,7 +8,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
+
 import org.springframework.stereotype.Component;
+
+import com.hzcu.order.model.Comment;
+import com.hzcu.order.model.Dish;
+import com.hzcu.order.model.DishCategory;
+import com.hzcu.order.model.Order;
+import com.hzcu.order.model.OrderGoods;
+import com.hzcu.order.model.Shop;
+import com.hzcu.order.model.UserProfile;
+
+import jakarta.annotation.PostConstruct;
 
 @Component
 public class DataStore {
@@ -24,7 +28,9 @@ public class DataStore {
   private final Map<Long, List<DishCategory>> dishCategories = new HashMap<>();
   private final Map<Long, List<Comment>> shopComments = new HashMap<>();
   private final List<Order> orders = new ArrayList<>();
+  private final List<UserProfile> users = new ArrayList<>();
   private final AtomicLong orderIdGenerator = new AtomicLong(1000);
+  private final AtomicLong userIdGenerator = new AtomicLong(1);
   private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
   @PostConstruct
@@ -53,6 +59,24 @@ public class DataStore {
 
   public List<Order> getOrders() {
     return orders;
+  }
+
+  public List<UserProfile> getUsers() {
+    return users;
+  }
+
+  public synchronized UserProfile upsertUserByPhone(String phone, String nickname, String avatar) {
+    return users.stream().filter(u -> phone != null && phone.equals(u.getPhone())).findFirst()
+        .map(u -> {
+          if (nickname != null) u.setNickname(nickname);
+          if (avatar != null) u.setAvatar(avatar);
+          return u;
+        })
+        .orElseGet(() -> {
+          UserProfile u = new UserProfile(userIdGenerator.getAndIncrement(), nickname != null ? nickname : phone, avatar, phone);
+          users.add(u);
+          return u;
+        });
   }
 
   public Order addOrder(Order order) {

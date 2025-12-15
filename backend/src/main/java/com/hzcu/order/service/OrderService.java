@@ -114,6 +114,19 @@ public class OrderService {
     return order;
   }
 
+  public Order ready(long orderId) {
+    Order order = orderRepo.findById(orderId);
+    if (order == null) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "order not found");
+    }
+    String nextStatus = "ready";
+    String nextText = resolveStatusText(nextStatus);
+    orderRepo.updateStatus(orderId, nextStatus, nextText);
+    order.setStatus(nextStatus);
+    order.setStatusText(nextText);
+    return order;
+  }
+
   // Deprecated: switched to JDBC repository for persistence
   // private Order findOrder(long orderId) { ... }
 

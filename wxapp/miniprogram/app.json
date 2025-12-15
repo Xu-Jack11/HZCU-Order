@@ -3,6 +3,7 @@
     "pages/index/index",
     "pages/order/order",
     "pages/mine/mine",
+    "pages/login/login",
     "pages/shop/shop",
     "pages/favorite/favorite",
     "pages/coupon/coupon",

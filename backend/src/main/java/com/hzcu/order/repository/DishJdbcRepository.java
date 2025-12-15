@@ -62,4 +62,25 @@ public class DishJdbcRepository {
       }
     }, categoryId);
   }
+
+  public void updateDish(long dishId, java.util.Map<String, Object> payload) {
+    // Build dynamic SQL based on provided fields: name, description, image, price, category_id
+    StringBuilder sql = new StringBuilder("UPDATE dishes SET ");
+    java.util.List<Object> params = new java.util.ArrayList<>();
+    boolean first = true;
+    if (payload.containsKey("name")) { sql.append(first?"":" ,").append("name = ?"); params.add(String.valueOf(payload.get("name"))); first=false; }
+    if (payload.containsKey("description")) { sql.append(first?"":" ,").append("description = ?"); params.add(String.valueOf(payload.get("description"))); first=false; }
+    if (payload.containsKey("image")) { sql.append(first?"":" ,").append("image = ?"); params.add(String.valueOf(payload.get("image"))); first=false; }
+    if (payload.containsKey("price")) { sql.append(first?"":" ,").append("price = ?"); params.add(Double.valueOf(String.valueOf(payload.get("price")))); first=false; }
+    if (payload.containsKey("categoryId")) { sql.append(first?"":" ,").append("category_id = ?"); params.add(Long.valueOf(String.valueOf(payload.get("categoryId")))); first=false; }
+    if (first) { return; } // nothing to update
+    sql.append(" WHERE id = ?");
+    params.add(dishId);
+    jdbcTemplate.update(sql.toString(), params.toArray());
+  }
+
+  public void updateAvailability(long dishId, boolean isAvailable) {
+    String sql = "UPDATE dishes SET is_available = ? WHERE id = ?";
+    jdbcTemplate.update(sql, isAvailable ? 1 : 0, dishId);
+  }
 }

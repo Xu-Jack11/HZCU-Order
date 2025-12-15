@@ -1,64 +1,71 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import OrderCard, { Order, OrderStatus } from '@/components/OrderCard';
+import { api, PageResult } from '@/lib/api';
 import styles from './page.module.css';
 
-// Mock Data
-const initialOrders: Order[] = [
-    {
-        id: '1',
-        number: 'A001',
-        createTime: '11:30',
-        status: 'PENDING',
-        items: [
-            { name: '红烧肉套餐', quantity: 1, spec: '微辣' },
-            { name: '可乐', quantity: 1 }
-        ],
-        totalAmount: 28.5,
-        note: '多放点饭'
-    },
-    {
-        id: '2',
-        number: 'A002',
-        createTime: '11:32',
-        status: 'PROCESSING',
-        items: [
-            { name: '番茄炒蛋', quantity: 1 },
-            { name: '米饭', quantity: 1 }
-        ],
-        totalAmount: 15.0
-    },
-    {
-        id: '3',
-        number: 'A003',
-        createTime: '11:45',
-        status: 'READY',
-        items: [
-            { name: '牛肉面', quantity: 2, spec: '大碗' }
-        ],
-        totalAmount: 40.0
-    },
-    {
-        id: '4',
-        number: 'A004',
-        createTime: '12:01',
-        status: 'PENDING',
-        items: [
-            { name: '麻婆豆腐', quantity: 1 }
-        ],
-        totalAmount: 12.0
-    }
-];
+// 改为从后端接口加载数据
 
 export default function DashboardPage() {
-    const [orders, setOrders] = useState<Order[]>(initialOrders);
+    const [orders, setOrders] = useState<Order[]>([]);
     const [filter, setFilter] = useState<OrderStatus | 'ALL'>('ALL');
+    const [loading, setLoading] = useState<boolean>(false);
+    const [error, setError] = useState<string | null>(null);
 
-    const handleStatusChange = (id: string, newStatus: OrderStatus) => {
-        setOrders(prev => prev.map(order =>
-            order.id === id ? { ...order, status: newStatus } : order
-        ));
+    const loadOrders = async (status?: OrderStatus) => {
+        setLoading(true);
+        setError(null);
+        try {
+            const page: PageResult<any> = await api.getOrders(status ? { status } : undefined);
+            // 将后端订单结构规范化为前端使用的结构
+            const normalized: Order[] = (page.list || []).map((o: any) => {
+                // 后端状态: pending|preparing|ready|completed|canceled → 前端: PENDING|PROCESSING|READY|COMPLETED|CANCELLED
+                const statusMap: Record<string, OrderStatus> = {
+                    pending: 'PENDING',
+                    preparing: 'PROCESSING',
+                    ready: 'READY',
+                    completed: 'COMPLETED',
+                    canceled: 'CANCELLED',
+                };
+                const status = statusMap[String(o.status || '').toLowerCase()] || 'PENDING';
+                return {
+                    id: String(o.id),
+                    number: String(o.number || o.id),
+                    createTime: String(o.createTime || ''),
+                    status,
+                    items: Array.isArray(o.items) ? o.items : undefined,
+                    goods: Array.isArray(o.goods) ? o.goods : undefined,
+                    totalAmount: typeof o.totalAmount === 'number' ? o.totalAmount : (typeof o.totalPrice === 'number' ? o.totalPrice : 0),
+                    note: o.remark || o.note || '',
+                } as Order;
+            });
+            setOrders(normalized);
+        } catch (e: any) {
+            setError(e?.message || '加载订单失败');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (filter === 'ALL') {
+            loadOrders();
+        } else {
+            loadOrders(filter as OrderStatus);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [filter]);
+
+    const handleStatusChange = async (id: string, newStatus: OrderStatus) => {
+        try {
+            const updated = await api.updateOrderStatus(id, newStatus);
+            setOrders(prev => prev.map(order =>
+                order.id === id ? updated : order
+            ));
+        } catch (e: any) {
+            setError(e?.message || '更新订单状态失败');
+        }
     };
 
     const filteredOrders = orders.filter(o =>
@@ -108,7 +115,12 @@ export default function DashboardPage() {
                 </button>
             </div>
 
-            {filteredOrders.length === 0 ? (
+            {error && (
+                <div className={styles.emptyState} style={{ color: '#c00' }}>{error}</div>
+            )}
+            {loading ? (
+                <div className={styles.emptyState}>加载中...</div>
+            ) : filteredOrders.length === 0 ? (
                 <div className={styles.emptyState}>暂无相关订单</div>
             ) : (
                 <div className={styles.grid}>

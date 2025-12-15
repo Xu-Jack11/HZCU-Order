@@ -12,12 +12,22 @@ export interface OrderItem {
     spec?: string;
 }
 
+// 兼容后端返回的 goods 项结构
+export interface BackendGoodsItem {
+    name: string;
+    image?: string;
+    price?: number;
+    count?: number;
+}
+
 export interface Order {
     id: string;
     number: string; // Pick-up number
     createTime: string;
     status: OrderStatus;
     items: OrderItem[];
+    // 兼容后端字段
+    goods?: BackendGoodsItem[];
     totalAmount: number;
     note?: string;
 }
@@ -57,7 +67,10 @@ export default function OrderCard({ order, onStatusChange }: OrderCardProps) {
             </div>
 
             <div className={styles.items}>
-                {order.items.map((item, idx) => (
+                {(order.items && order.items.length > 0
+                    ? order.items
+                    : (order.goods || []).map(g => ({ name: g.name, quantity: g.count || 0 } as OrderItem))
+                ).map((item, idx) => (
                     <div key={idx} className={styles.item}>
                         <span className={styles.itemName}>
                             {item.name} {item.spec && <span style={{ fontSize: '0.8em', color: '#666' }}>({item.spec})</span>}

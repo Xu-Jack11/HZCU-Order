@@ -1,0 +1,1 @@
+.container{padding:24rpx}.title{font-size:32rpx;margin-bottom:24rpx}.input{border:1px solid #eee;border-radius:8rpx;padding:16rpx;margin-bottom:24rpx}.btn{background:#007AFF;color:#fff;border:none;border-radius:8rpx;padding:20rpx}

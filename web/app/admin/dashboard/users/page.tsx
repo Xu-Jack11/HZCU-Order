@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Search, Ban, CheckCircle, Edit2, X } from 'lucide-react';
 import styles from './page.module.css';
+import { api } from '@/lib/api';
 
 interface User {
     id: string;
@@ -13,20 +14,40 @@ interface User {
     registerDate: string;
 }
 
-const initialUsers: User[] = [
-    { id: '1', name: '张三', studentId: '31901001', phone: '15800001234', status: 'NORMAL', registerDate: '2025-09-01' },
-    { id: '2', name: '李四', studentId: '31901002', phone: '15800002345', status: 'NORMAL', registerDate: '2025-09-02' },
-    { id: '3', name: '王五', studentId: '31901003', phone: '15800003456', status: 'BANNED', registerDate: '2025-09-03' },
-    { id: '4', name: '赵六', studentId: '31901004', phone: '15800004567', status: 'NORMAL', registerDate: '2025-09-04' },
-    { id: '5', name: '孙七', studentId: '31901005', phone: '15800005678', status: 'NORMAL', registerDate: '2025-09-05' },
-    { id: '6', name: '周八', studentId: '31901006', phone: '15800006789', status: 'BANNED', registerDate: '2025-09-06' },
-];
+const initialUsers: User[] = [];
 
 export default function UsersPage() {
     const [users, setUsers] = useState<User[]>(initialUsers);
     const [searchTerm, setSearchTerm] = useState('');
     const [editingUser, setEditingUser] = useState<User | null>(null);
     const [editForm, setEditForm] = useState({ phone: '' });
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const load = async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                const page = await api.getUsers(1, 1000);
+                const list = page.list || [];
+                const mapped: User[] = list.map((u: any) => ({
+                    id: String(u.id),
+                    name: u.phone || u.name || '用户',
+                    studentId: '',
+                    phone: u.phone,
+                    status: 'NORMAL',
+                    registerDate: u.registerDate || ''
+                }));
+                setUsers(mapped);
+            } catch (e: any) {
+                setError(e.message || '加载用户失败');
+            } finally {
+                setLoading(false);
+            }
+        };
+        load();
+    }, []);
 
     const toggleStatus = (id: string) => {
         setUsers(prev => prev.map(u =>
@@ -74,6 +95,8 @@ export default function UsersPage() {
             </div>
 
             <div className={styles.tableWrapper}>
+                {loading && <div style={{ padding: '0.5rem 1rem', color: '#64748b' }}>加载中...</div>}
+                {error && <div style={{ padding: '0.5rem 1rem', color: '#b91c1c' }}>错误：{error}</div>}
                 <table className={styles.table}>
                     <thead>
                         <tr>

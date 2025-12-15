@@ -50,4 +50,14 @@ public class OrderController {
   public ApiResponse<Order> pay(@PathVariable("orderId") long orderId) {
     return ApiResponse.success(orderService.pay(orderId));
   }
+
+  @PostMapping("/orders/{orderId}/ready")
+  public ApiResponse<Order> ready(@PathVariable("orderId") long orderId) {
+    return ApiResponse.success(orderService.ready(orderId));
+  }
+
+  @PostMapping("/orders/{orderId}/complete")
+  public ApiResponse<Order> complete(@PathVariable("orderId") long orderId) {
+    return ApiResponse.success(orderService.complete(orderId));
+  }
 }

@@ -14,6 +14,8 @@ export const request = <T = any>(options: RequestOptions): Promise<T> => {
       timeout: options.timeout || DEFAULT_TIMEOUT,
       header: {
         'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache',
+        Pragma: 'no-cache',
         Authorization: wx.getStorageSync('token') || '',
         ...options.header
       },
