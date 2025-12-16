@@ -24,7 +24,7 @@ public class ShopJdbcRepository {
 
   public List<Shop> findAll() {
     // 仅选择各库都较为通用的字段；其余在映射时给默认值
-    String sql = "SELECT id, name, logo, rating FROM shops ORDER BY id ASC";
+    String sql = "SELECT id, name, logo, rating FROM canteenshops ORDER BY id ASC";
     return jdbcTemplate.query(sql, new RowMapper<Shop>() {
       @Override
       public Shop mapRow(ResultSet rs, int rowNum) throws SQLException {
@@ -53,7 +53,7 @@ public class ShopJdbcRepository {
   }
 
   public Shop findById(long id) {
-    String sql = "SELECT id, name, logo, rating FROM shops WHERE id = ?";
+    String sql = "SELECT id, name, logo, rating FROM canteenshops WHERE id = ?";
     List<Shop> list = jdbcTemplate.query(sql, new RowMapper<Shop>() {
       @Override
       public Shop mapRow(ResultSet rs, int rowNum) throws SQLException {
@@ -83,7 +83,7 @@ public class ShopJdbcRepository {
   }
 
   public Shop create(String name, String logo, double rating) {
-    String sql = "INSERT INTO shops (name, logo, rating) VALUES (?, ?, ?)";
+    String sql = "INSERT INTO canteenshops (name, logo, rating) VALUES (?, ?, ?)";
     org.springframework.jdbc.support.KeyHolder keyHolder = new org.springframework.jdbc.support.GeneratedKeyHolder();
     jdbcTemplate.update((Connection con) -> {
       PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);

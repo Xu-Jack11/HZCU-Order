@@ -75,8 +75,8 @@
 | 指标 | 结果 |
 | :--- | :--- |
 | **测试套件总数** | 4 |
-| **测试用例总数** | 5 |
-| **通过用例数** | 5 |
+| **测试用例总数** | 9 |
+| **通过用例数** | 9 |
 | **失败用例数** | 0 |
 | **通过率** | 100% |
 
@@ -85,7 +85,7 @@
 	- 单元测试: 控制器与服务最小化逻辑验证（不依赖外部环境）。
 	- 集成测试: 启动 Spring 上下文，MockMvc 调用 `/home/feed`、`/canteens` 等接口并断言 JSON 结构。
 	- 系统测试: 随机端口全链路启动后，用 `TestRestTemplate` 命中真实 `http://localhost:<port>/api/v1/...` 路由。
-- **异常容忍**: 测试环境使用 H2 且未建 `shops` 表，日志会出现 SQL 语句异常；服务与控制器具备降级/兜底逻辑，接口仍返回 200 并通过断言。
+- **测试数据库**: 使用 `application-test.yml` 启用 Spring SQL 初始化，加载 [backend/src/test/resources/schema.sql](backend/src/test/resources/schema.sql) 与 [backend/src/test/resources/data.sql](backend/src/test/resources/data.sql)；表名为 `canteenshops`，与仓储一致，日志无 SQL 语法异常。
 
 ### 5.1 运行方式
 
@@ -103,3 +103,23 @@
 - **后续建议**: 
 	- 在测试 profile 下初始化简化表结构（如 `canteenshops`）以去除 H2 日志噪声。
 	- 增加异常分支与边界值（分页、查询条件、空数据）覆盖度。
+
+### 5.3 各测试类型做了什么
+
+- 单元测试（Controller）: [backend/src/test/java/com/hzcu/order/controller/CanteenControllerTest.java](backend/src/test/java/com/hzcu/order/controller/CanteenControllerTest.java)
+	- 获取食堂列表返回 200，断言返回包裹结构 `code/data.total/data.list`。
+	- 参数归一化：当 `page`、`pageSize` 小于 1 时归一化为 1，并验证传入服务层的参数。
+	- 服务异常兜底：当服务抛出异常时，控制器回退到 `DataStore` 返回列表与总数。
+
+- 单元测试（Service）: [backend/src/test/java/com/hzcu/order/service/CanteenServiceTest.java](backend/src/test/java/com/hzcu/order/service/CanteenServiceTest.java)
+	- 基本分页结构校验：返回 `total/list/page/pageSize` 等字段的正确性。
+	- 未找到食堂时抛出 404：`getShop` 在仓储未装配时抛出 `ResponseStatusException`。
+	- 过滤/排序/分页：对关键词（如 “spicy”）过滤，按 `hot` 排序，并断言分页顺序如预期。
+
+- 集成测试: [backend/src/test/java/com/hzcu/order/integration/CanteenIntegrationTest.java](backend/src/test/java/com/hzcu/order/integration/CanteenIntegrationTest.java)
+	- 启动 Spring 上下文（`@SpringBootTest` + `@AutoConfigureMockMvc`），激活 `test` profile，接入 H2 初始化数据。
+	- 验证 `/home/feed`、`/canteens` 接口 HTTP 200 与 JSON 包裹结构，校验 `code` 为 "0" 与数据字段存在。
+
+- 系统测试: [backend/src/test/java/com/hzcu/order/system/CanteenSystemTest.java](backend/src/test/java/com/hzcu/order/system/CanteenSystemTest.java)
+	- 随机端口全链路启动（`RANDOM_PORT`），通过 `TestRestTemplate` 命中 `http://localhost:<port>/api/v1/...`。
+	- 验证首页与列表接口可用性与返回包裹结构，确保上下文路径 `/api/v1` 一致。
