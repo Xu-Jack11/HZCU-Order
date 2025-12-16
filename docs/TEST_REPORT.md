@@ -67,3 +67,39 @@
 
 ---
 *详细 HTML 报告已生成至: `web/test-report/test-report.html`*
+
+## 5. 后端测试报告（单元/集成/系统）
+
+本次为后端 Spring Boot 服务补齐了单元测试、集成测试与系统测试三层验证，并生成了 HTML 报告。
+
+| 指标 | 结果 |
+| :--- | :--- |
+| **测试套件总数** | 4 |
+| **测试用例总数** | 5 |
+| **通过用例数** | 5 |
+| **失败用例数** | 0 |
+| **通过率** | 100% |
+
+- **技术栈**: Spring Boot 3.2.5, JUnit 5, Spring Test, MockMvc, TestRestTemplate, H2(测试环境)
+- **测试层次**:
+	- 单元测试: 控制器与服务最小化逻辑验证（不依赖外部环境）。
+	- 集成测试: 启动 Spring 上下文，MockMvc 调用 `/home/feed`、`/canteens` 等接口并断言 JSON 结构。
+	- 系统测试: 随机端口全链路启动后，用 `TestRestTemplate` 命中真实 `http://localhost:<port>/api/v1/...` 路由。
+- **异常容忍**: 测试环境使用 H2 且未建 `shops` 表，日志会出现 SQL 语句异常；服务与控制器具备降级/兜底逻辑，接口仍返回 200 并通过断言。
+
+### 5.1 运行方式
+
+- 运行测试: `mvn -f backend/pom.xml test`
+- 生成 HTML 报告: `mvn -f backend/pom.xml org.apache.maven.plugins:maven-surefire-report-plugin:3.2.5:report`
+
+生成位置:
+- 文本/XML 报告: [backend/target/surefire-reports](backend/target/surefire-reports)
+- HTML 报告: [backend/target/site/surefire-report.html](backend/target/site/surefire-report.html)
+
+### 5.2 结论
+
+- **覆盖目标**: 控制器最小可用性、服务结果结构、关键接口契约、上下文路径一致性。
+- **当前结果**: 所有后端用例均通过，接口契约与降级行为符合预期。
+- **后续建议**: 
+	- 在测试 profile 下初始化简化表结构（如 `canteenshops`）以去除 H2 日志噪声。
+	- 增加异常分支与边界值（分页、查询条件、空数据）覆盖度。
