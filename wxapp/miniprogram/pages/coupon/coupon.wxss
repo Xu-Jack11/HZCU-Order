@@ -1,0 +1,136 @@
+page {
+  background: #f7f8fa;
+  height: 100vh;
+}
+
+.container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 20rpx 24rpx calc(env(safe-area-inset-bottom) + 24rpx);
+  box-sizing: border-box;
+}
+
+.tip {
+  background: rgba(0, 122, 255, 0.08);
+  color: #0a6bde;
+  padding: 16rpx 20rpx;
+  border-radius: 16rpx;
+  margin-bottom: 16rpx;
+  font-size: 26rpx;
+}
+
+.coupon-list {
+  flex: 1;
+}
+
+.coupon-card {
+  display: flex;
+  background: #fff;
+  border-radius: 20rpx;
+  overflow: hidden;
+  margin-bottom: 20rpx;
+  box-shadow: var(--shadow-sm, 0 2rpx 8rpx rgba(0, 0, 0, 0.05));
+}
+
+.coupon-left {
+  width: 200rpx;
+  background: linear-gradient(160deg, #ff7a45, #ff4d4f);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20rpx 10rpx;
+}
+
+.amount {
+  font-size: 48rpx;
+  font-weight: 700;
+}
+
+.limit {
+  font-size: 24rpx;
+  opacity: 0.9;
+}
+
+.coupon-right {
+  flex: 1;
+  padding: 20rpx;
+  display: flex;
+  flex-direction: column;
+}
+
+.title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6rpx;
+}
+
+.title {
+  font-size: 30rpx;
+  color: #333;
+  font-weight: 600;
+}
+
+.scope {
+  font-size: 22rpx;
+  color: #ff7a45;
+  background: rgba(255, 122, 69, 0.12);
+  padding: 4rpx 10rpx;
+  border-radius: 10rpx;
+}
+
+.desc {
+  font-size: 26rpx;
+  color: #666;
+  margin-bottom: 10rpx;
+}
+
+.meta {
+  font-size: 24rpx;
+  color: #999;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12rpx;
+}
+
+.shop-limit {
+  color: #666;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: auto;
+}
+
+.use-btn {
+  padding: 10rpx 24rpx;
+  border-radius: 999rpx;
+  color: #fff;
+  background: var(--primary-color, #007AFF);
+  font-size: 26rpx;
+  box-shadow: 0 6rpx 14rpx rgba(0, 122, 255, 0.25);
+}
+
+.use-btn.disabled {
+  background: #d9d9d9;
+  color: #999;
+  box-shadow: none;
+}
+
+.footer {
+  padding-top: 8rpx;
+}
+
+.footer-btn {
+  background: #fff;
+  color: #333;
+  text-align: center;
+  padding: 18rpx;
+  border-radius: 999rpx;
+  border: 1rpx solid #e5e5e5;
+  font-size: 28rpx;
+}

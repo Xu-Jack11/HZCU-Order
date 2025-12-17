@@ -1,0 +1,262 @@
+/**checkout.wxss**/
+page {
+  background-color: var(--bg-color, #F7F8FA);
+}
+
+.container {
+  padding-bottom: calc(140rpx + env(safe-area-inset-bottom));
+  padding-top: 20rpx;
+}
+
+/* Common Card Style */
+.address-section,
+.shop-section,
+.goods-section,
+.delivery-section,
+.price-section,
+.dining-section,
+.pickup-section {
+  background: #FFFFFF;
+  margin: 0 32rpx 24rpx;
+  border-radius: 24rpx;
+  padding: 0 32rpx;
+  box-shadow: var(--shadow-sm, 0 2rpx 8rpx rgba(0, 0, 0, 0.04));
+  overflow: hidden;
+}
+
+/* Specific Section Padding Overrides if needed */
+.address-section,
+.shop-section {
+  padding: 24rpx 32rpx;
+}
+
+/* 收货地址 */
+.address-section {
+  display: flex;
+  align-items: center;
+}
+
+.address-content {
+  flex: 1;
+}
+
+.address-content.empty {
+  display: flex;
+  align-items: center;
+  color: var(--text-light, #999);
+}
+
+.add-icon {
+  width: 40rpx;
+  height: 40rpx;
+  margin-right: 16rpx;
+  opacity: 0.6;
+}
+
+.receiver {
+  font-size: 32rpx;
+  color: var(--text-main, #333);
+  font-weight: 600;
+  margin-bottom: 8rpx;
+  display: block;
+}
+
+.address-detail {
+  font-size: 26rpx;
+  color: var(--text-sub, #666);
+}
+
+.arrow-right {
+  width: 24rpx;
+  height: 24rpx;
+  opacity: 0.4;
+}
+
+/* 商家信息 */
+.shop-section {
+  display: flex;
+  align-items: center;
+}
+
+.shop-logo {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 12rpx;
+  margin-right: 20rpx;
+  background-color: #eee;
+}
+
+.shop-name {
+  font-size: 30rpx;
+  color: var(--text-main, #333);
+  font-weight: 600;
+}
+
+/* Dining & Pickup Sections */
+.dining-item,
+.pickup-item {
+  display: flex;
+  align-items: center;
+  padding: 32rpx 0;
+  border-bottom: 1rpx solid #F5F6F8;
+}
+
+.dining-item:last-child,
+.pickup-item:last-child {
+  border-bottom: none;
+}
+
+.table-input {
+  flex: 1;
+  text-align: right;
+  font-size: 28rpx;
+  color: var(--text-main, #333);
+}
+
+/* 商品列表 */
+.goods-item {
+  display: flex;
+  align-items: center;
+  padding: 24rpx 0;
+  border-bottom: 1rpx solid #F5F6F8;
+}
+
+.goods-item:last-child {
+  border-bottom: none;
+}
+
+.goods-image {
+  width: 110rpx;
+  height: 110rpx;
+  border-radius: 12rpx;
+  margin-right: 24rpx;
+  background-color: #f9f9f9;
+}
+
+.goods-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.goods-name {
+  font-size: 28rpx;
+  color: var(--text-main, #333);
+  display: block;
+  margin-bottom: 8rpx;
+  font-weight: 500;
+}
+
+.goods-count {
+  font-size: 24rpx;
+  color: var(--text-light, #999);
+}
+
+.goods-price {
+  font-size: 28rpx;
+  color: var(--text-main, #333);
+  font-weight: 500;
+}
+
+/* 配送信息 */
+.delivery-item {
+  display: flex;
+  align-items: center;
+  padding: 32rpx 0;
+  border-bottom: 1rpx solid #F5F6F8;
+}
+
+.delivery-item:last-child {
+  border-bottom: none;
+}
+
+.label {
+  font-size: 28rpx;
+  color: var(--text-main, #333);
+  width: 160rpx;
+}
+
+.value {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  font-size: 28rpx;
+  color: var(--text-sub, #666);
+}
+
+.coupon-brief {
+  margin-left: 12rpx;
+  color: #FF6B00;
+  font-size: 24rpx;
+}
+
+.remark-input {
+  flex: 1;
+  text-align: right;
+  font-size: 28rpx;
+  color: var(--text-main, #333);
+}
+
+/* 价格明细 */
+.price-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 24rpx 0;
+  font-size: 28rpx;
+  color: var(--text-sub, #666);
+  border-bottom: 1rpx solid #F5F6F8;
+}
+
+.price-item:last-child {
+  border-bottom: none;
+}
+
+.discount {
+  color: #FF3B30;
+}
+
+/* 底部支付栏 */
+.pay-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #FFFFFF;
+  padding: 20rpx 32rpx;
+  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+  box-shadow: 0 -4rpx 16rpx rgba(0,0,0,0.05);
+  z-index: 100;
+}
+
+.pay-price {
+  display: flex;
+  align-items: baseline;
+}
+
+.pay-price .label {
+  font-size: 28rpx;
+  color: var(--text-main, #333);
+  width: auto;
+}
+
+.pay-price .price {
+  font-size: 44rpx;
+  color: #FF3B30;
+  font-weight: bold;
+  margin-left: 8rpx;
+}
+
+.pay-btn {
+  background: var(--primary-color, #007AFF);
+  color: #fff;
+  font-size: 32rpx;
+  font-weight: 600;
+  padding: 24rpx 64rpx;
+  border-radius: 44rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 122, 255, 0.3);
+}

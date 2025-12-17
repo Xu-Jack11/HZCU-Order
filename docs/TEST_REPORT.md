@@ -1,0 +1,125 @@
+# 软件测试报告
+
+**项目名称**: HZCU-Order (Web Merchant Client)  
+**测试日期**: 2025年12月14日  
+**测试人员**: GitHub Copilot  
+**测试类型**: 白盒测试 (单元测试 & 集成测试)
+
+## 1. 测试概览
+
+本次测试主要针对商家端 Web 应用的关键组件和页面进行白盒测试。测试重点在于验证组件的状态流转逻辑、条件渲染以及页面级的交互流程。
+
+| 指标 | 结果 |
+| :--- | :--- |
+| **测试套件总数** | 2 |
+| **测试用例总数** | 14 |
+| **通过用例数** | 14 |
+| **失败用例数** | 0 |
+| **通过率** | 100% |
+
+## 2. 测试环境
+
+- **操作系统**: Windows
+- **测试框架**: Jest + React Testing Library
+- **运行环境**: Node.js (Next.js Environment)
+
+## 3. 详细测试结果
+
+### 3.1 组件测试: OrderCard (订单卡片)
+
+**测试文件**: `web/components/__tests__/OrderCard.test.tsx`
+
+该组件是商家处理订单的核心交互单元。测试覆盖了所有订单状态的显示逻辑及操作按钮的交互。
+
+| 测试点 | 描述 | 结果 |
+| :--- | :--- | :--- |
+| **状态渲染 (PENDING)** | 验证“待接单”状态下显示“接单/拒单”按钮 | ✅ 通过 |
+| **状态渲染 (PROCESSING)** | 验证“制作中”状态下显示“叫号取餐”按钮 | ✅ 通过 |
+| **状态渲染 (READY)** | 验证“待取餐”状态下显示“完成订单”按钮 | ✅ 通过 |
+| **状态渲染 (COMPLETED)** | 验证“已完成”状态下无操作按钮，显示归档信息 | ✅ 通过 |
+| **状态渲染 (CANCELLED)** | 验证“已取消”状态显示正确 | ✅ 通过 |
+| **条件渲染 (备注)** | 验证订单备注存在时的显示情况 | ✅ 通过 |
+| **条件渲染 (无备注)** | 验证订单备注不存在时的显示情况 | ✅ 通过 |
+| **条件渲染 (规格)** | 验证商品规格存在时的显示情况 | ✅ 通过 |
+| **交互 (接单)** | 点击“接单”触发状态变更为 PROCESSING | ✅ 通过 |
+| **交互 (拒单)** | 点击“拒单”触发状态变更为 CANCELLED | ✅ 通过 |
+| **交互 (叫号)** | 点击“叫号取餐”触发状态变更为 READY | ✅ 通过 |
+| **交互 (完成)** | 点击“完成订单”触发状态变更为 COMPLETED | ✅ 通过 |
+
+### 3.2 页面测试: LoginPage (登录页)
+
+**测试文件**: `web/app/login/__tests__/page.test.tsx`
+
+该页面是商家进入系统的入口。测试覆盖了表单渲染、提交逻辑及异步跳转。
+
+| 测试点 | 描述 | 结果 |
+| :--- | :--- | :--- |
+| **表单渲染** | 验证账号、密码输入框及登录按钮的存在 | ✅ 通过 |
+| **表单提交与跳转** | 验证点击登录后的 Loading 状态及路由跳转逻辑 | ✅ 通过 |
+
+## 4. 结论
+
+经过白盒测试，`OrderCard` 组件和 `LoginPage` 页面的核心逻辑均符合预期。
+- **逻辑正确性**: 所有状态分支和条件渲染均已覆盖，未发现逻辑错误。
+- **交互稳定性**: 按钮点击和表单提交均能正确触发预期的回调或副作用。
+
+建议后续继续增加对 `Dashboard` 页面及其他业务组件的测试覆盖。
+
+---
+*详细 HTML 报告已生成至: `web/test-report/test-report.html`*
+
+## 5. 后端测试报告（单元/集成/系统）
+
+本次为后端 Spring Boot 服务补齐了单元测试、集成测试与系统测试三层验证，并生成了 HTML 报告。
+
+| 指标 | 结果 |
+| :--- | :--- |
+| **测试套件总数** | 4 |
+| **测试用例总数** | 9 |
+| **通过用例数** | 9 |
+| **失败用例数** | 0 |
+| **通过率** | 100% |
+
+- **技术栈**: Spring Boot 3.2.5, JUnit 5, Spring Test, MockMvc, TestRestTemplate, H2(测试环境)
+- **测试层次**:
+	- 单元测试: 控制器与服务最小化逻辑验证（不依赖外部环境）。
+	- 集成测试: 启动 Spring 上下文，MockMvc 调用 `/home/feed`、`/canteens` 等接口并断言 JSON 结构。
+	- 系统测试: 随机端口全链路启动后，用 `TestRestTemplate` 命中真实 `http://localhost:<port>/api/v1/...` 路由。
+- **测试数据库**: 使用 `application-test.yml` 启用 Spring SQL 初始化，加载 [backend/src/test/resources/schema.sql](backend/src/test/resources/schema.sql) 与 [backend/src/test/resources/data.sql](backend/src/test/resources/data.sql)；表名为 `canteenshops`，与仓储一致，日志无 SQL 语法异常。
+
+### 5.1 运行方式
+
+- 运行测试: `mvn -f backend/pom.xml test`
+- 生成 HTML 报告: `mvn -f backend/pom.xml org.apache.maven.plugins:maven-surefire-report-plugin:3.2.5:report`
+
+生成位置:
+- 文本/XML 报告: [backend/target/surefire-reports](backend/target/surefire-reports)
+- HTML 报告: [backend/target/site/surefire-report.html](backend/target/site/surefire-report.html)
+
+### 5.2 结论
+
+- **覆盖目标**: 控制器最小可用性、服务结果结构、关键接口契约、上下文路径一致性。
+- **当前结果**: 所有后端用例均通过，接口契约与降级行为符合预期。
+- **后续建议**: 
+	- 在测试 profile 下初始化简化表结构（如 `canteenshops`）以去除 H2 日志噪声。
+	- 增加异常分支与边界值（分页、查询条件、空数据）覆盖度。
+
+### 5.3 各测试类型做了什么
+
+- 单元测试（Controller）: [backend/src/test/java/com/hzcu/order/controller/CanteenControllerTest.java](backend/src/test/java/com/hzcu/order/controller/CanteenControllerTest.java)
+	- 获取食堂列表返回 200，断言返回包裹结构 `code/data.total/data.list`。
+	- 参数归一化：当 `page`、`pageSize` 小于 1 时归一化为 1，并验证传入服务层的参数。
+	- 服务异常兜底：当服务抛出异常时，控制器回退到 `DataStore` 返回列表与总数。
+
+- 单元测试（Service）: [backend/src/test/java/com/hzcu/order/service/CanteenServiceTest.java](backend/src/test/java/com/hzcu/order/service/CanteenServiceTest.java)
+	- 基本分页结构校验：返回 `total/list/page/pageSize` 等字段的正确性。
+	- 未找到食堂时抛出 404：`getShop` 在仓储未装配时抛出 `ResponseStatusException`。
+	- 过滤/排序/分页：对关键词（如 “spicy”）过滤，按 `hot` 排序，并断言分页顺序如预期。
+
+- 集成测试: [backend/src/test/java/com/hzcu/order/integration/CanteenIntegrationTest.java](backend/src/test/java/com/hzcu/order/integration/CanteenIntegrationTest.java)
+	- 启动 Spring 上下文（`@SpringBootTest` + `@AutoConfigureMockMvc`），激活 `test` profile，接入 H2 初始化数据。
+	- 验证 `/home/feed`、`/canteens` 接口 HTTP 200 与 JSON 包裹结构，校验 `code` 为 "0" 与数据字段存在。
+
+- 系统测试: [backend/src/test/java/com/hzcu/order/system/CanteenSystemTest.java](backend/src/test/java/com/hzcu/order/system/CanteenSystemTest.java)
+	- 随机端口全链路启动（`RANDOM_PORT`），通过 `TestRestTemplate` 命中 `http://localhost:<port>/api/v1/...`。
+	- 验证首页与列表接口可用性与返回包裹结构，确保上下文路径 `/api/v1` 一致。

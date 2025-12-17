@@ -1,0 +1,334 @@
+/**index.wxss**/
+page {
+  height: 100vh;
+  background-color: var(--bg-color, #F7F8FA);
+  overflow-x: hidden; /* Prevent horizontal scroll */
+  width: 100%;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+/* 顶部地址栏 */
+.header {
+  background: #FFFFFF;
+  padding: 20rpx 32rpx;
+  /* Use safe-area-inset-top + standard nav bar height (approx 44px/88rpx) for content spacing */
+  padding-top: calc(env(safe-area-inset-top) + 20rpx);
+  min-height: 88rpx; /* Ensure it has enough height to not feel cramped */
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.location {
+  display: flex;
+  align-items: center;
+  max-width: 60%;
+  height: 60rpx; /* Fixed height for alignment */
+}
+
+.location-icon {
+  width: 36rpx;
+  height: 36rpx;
+  margin-right: 8rpx;
+  filter: brightness(0); 
+}
+
+.location-text {
+  color: var(--text-main, #333);
+  font-size: 34rpx;
+  font-weight: 600;
+  margin-right: 8rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.arrow-icon {
+  width: 20rpx;
+  height: 20rpx;
+  filter: brightness(0);
+  opacity: 0.6;
+}
+
+/* 搜索框 */
+.search-bar {
+  padding: 12rpx 32rpx 24rpx;
+  background: #FFFFFF;
+  display: flex;
+  align-items: center;
+}
+
+.search-input-wrap {
+  display: flex;
+  align-items: center;
+  background: #F5F6F8;
+  border-radius: 36rpx;
+  padding: 16rpx 24rpx;
+  transition: all 0.3s ease;
+  flex: 1;
+  height: 72rpx; /* Fixed height for consistency */
+  box-sizing: border-box;
+}
+
+.search-input-wrap:active {
+  background: #EFEFEF;
+}
+
+.search-icon {
+  width: 32rpx;
+  height: 32rpx;
+  margin-right: 16rpx;
+  opacity: 0.5;
+}
+
+.search-input {
+  flex: 1;
+  font-size: 28rpx;
+  color: var(--text-main, #333);
+  height: 100%;
+}
+
+.placeholder {
+  color: #999;
+}
+
+.search-btn {
+  color: #FFFFFF;
+  font-size: 28rpx;
+  font-weight: 500;
+  margin-left: 20rpx;
+  padding: 0 32rpx; /* Use horizontal padding only */
+  height: 72rpx; /* Match input height */
+  line-height: 72rpx; /* Center text vertically */
+  background: var(--primary-color, #007AFF);
+  border-radius: 36rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 122, 255, 0.3);
+  flex-shrink: 0; /* Prevent shrinking */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 分类导航 */
+.category-scroll {
+  background: #FFFFFF;
+  white-space: nowrap;
+  padding-bottom: 20rpx;
+  margin-bottom: 20rpx;
+}
+
+.category-list {
+  display: flex;
+  padding: 20rpx 10rpx;
+}
+
+.category-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 20rpx;
+  min-width: 140rpx;
+  display: inline-flex; /* Ensure items stay inline in scroll view */
+}
+
+.category-item.active .category-icon {
+  box-shadow: 0 6rpx 14rpx rgba(0, 122, 255, 0.1);
+}
+
+.category-item.active .category-name {
+  color: var(--primary-color, #007AFF);
+}
+
+.category-icon {
+  width: 88rpx;
+  height: 88rpx;
+  margin-bottom: 12rpx;
+  border-radius: 24rpx;
+  /* background: #F5F6F8;  Optional: add background to icons */
+}
+
+.category-name {
+  font-size: 24rpx;
+  color: var(--text-main, #333);
+  font-weight: 500;
+}
+
+/* 筛选标签 */
+.filter-tabs {
+  display: flex;
+  background: #FFFFFF;
+  padding: 24rpx 32rpx;
+  border-bottom: 1rpx solid rgba(0,0,0,0.03);
+  /* Removed sticky to avoid complexity for now */
+}
+
+.filter-tab {
+  font-size: 30rpx;
+  color: var(--text-sub, #666);
+  margin-right: 48rpx;
+  padding-bottom: 8rpx;
+  position: relative;
+  transition: all 0.3s;
+}
+
+.filter-tab.active {
+  color: var(--text-main, #333);
+  font-weight: 600;
+  font-size: 32rpx;
+}
+
+.filter-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40rpx;
+  height: 6rpx;
+  background: var(--primary-color, #007AFF);
+  border-radius: 4rpx;
+}
+
+/* 商家列表 */
+.shop-list {
+  flex: 1;
+  padding: 24rpx 32rpx;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.shop-item {
+  display: flex;
+  background: #FFFFFF;
+  border-radius: 24rpx;
+  padding: 24rpx;
+  margin-bottom: 24rpx;
+  box-shadow: var(--shadow-sm, 0 2rpx 8rpx rgba(0, 0, 0, 0.04));
+  transition: transform 0.1s ease;
+  position: relative;
+}
+
+.shop-item:active {
+  transform: scale(0.99);
+}
+
+.shop-logo {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 16rpx;
+  margin-right: 24rpx;
+  flex-shrink: 0;
+  background-color: #eee;
+}
+
+.shop-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding-top: 4rpx;
+  padding-bottom: 4rpx;
+  overflow: hidden; /* Important for truncation */
+}
+
+.shop-name {
+  font-size: 32rpx;
+  color: var(--text-main, #333);
+  font-weight: 600;
+  margin-bottom: 8rpx;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shop-meta {
+  font-size: 24rpx;
+  color: var(--text-sub, #666);
+  display: flex;
+  align-items: center;
+  margin-bottom: 12rpx;
+}
+
+.shop-rating {
+  color: #FF9500;
+  font-weight: 600;
+  margin-right: 16rpx;
+  display: flex;
+  align-items: center;
+}
+
+.shop-rating::before {
+  content: '★';
+  font-size: 20rpx;
+  margin-right: 4rpx;
+}
+
+.shop-sales {
+  margin-right: 16rpx;
+}
+
+.shop-time-distance {
+  display: flex;
+  align-items: center;
+  margin-left: auto; /* Push to right */
+  color: var(--text-light, #999);
+}
+
+.shop-time {
+  margin-right: 12rpx;
+}
+
+.shop-delivery {
+  font-size: 22rpx;
+  color: var(--text-light, #999);
+  margin-bottom: 12rpx;
+}
+
+.shop-tags {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.favorite-btn {
+  position: absolute;
+  right: 24rpx;
+  top: 24rpx;
+  padding: 8rpx 20rpx;
+  font-size: 22rpx;
+  color: var(--text-sub, #666);
+  background: #F5F6F8;
+  border-radius: 999rpx;
+  z-index: 2;
+}
+
+.favorite-btn.active {
+  color: #FF6B00;
+  background: rgba(255, 107, 0, 0.1);
+}
+
+.tag {
+  font-size: 20rpx;
+  color: #FF5733;
+  background: rgba(255, 87, 51, 0.08);
+  border-radius: 8rpx;
+  padding: 4rpx 12rpx;
+  margin-right: 12rpx;
+  margin-top: 6rpx;
+  border: none; /* Removed border */
+}
+
+.loading, .no-more {
+  text-align: center;
+  padding: 30rpx;
+  color: var(--text-light, #999);
+  font-size: 24rpx;
+}

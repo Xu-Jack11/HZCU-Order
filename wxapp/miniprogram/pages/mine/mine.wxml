@@ -1,0 +1,93 @@
+<!--mine.wxml-->
+<view class="container">
+  <!-- 用户信息 -->
+  <view class="user-header">
+    <view class="user-info" bindtap="goBindPhone" wx:if="{{!isLogin}}">
+      <image class="user-avatar" src="/images/default-avatar.png" mode="aspectFill"></image>
+      <view class="user-text">
+        <text class="login-hint">点击登录</text>
+        <text class="login-desc">登录后享受更多服务</text>
+      </view>
+    </view>
+    <view class="user-info" wx:else>
+      <image class="user-avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill" bindtap="goBindPhone"></image>
+      <view class="user-text">
+        <text class="user-name">{{userInfo.nickName}}</text>
+        <text class="user-phone">{{userInfo.phone}}</text>
+      </view>
+    </view>
+    <!-- 登录后但未绑定手机号，提供测试绑定按钮 -->
+    <button class="bind-phone-btn" wx:if="{{isLogin && !userInfo.phone}}" bindtap="goBindPhone">绑定手机号</button>
+    <image class="setting-icon" src="/images/setting.png" mode="aspectFit" bindtap="goSetting"></image>
+  </view>
+
+  <!-- 订单入口 -->
+  <view class="order-section">
+    <view class="section-title">
+      <text>我的订单</text>
+      <view class="view-all" bindtap="goOrderList" data-status="all">
+        <text>查看全部</text>
+        <image class="arrow-right" src="/images/arrow-right.png" mode="aspectFit"></image>
+      </view>
+    </view>
+    <view class="order-quick-entry">
+      <view class="entry-item" bindtap="goOrderList" data-status="pending">
+        <image class="entry-icon" src="/images/order/pending.png" mode="aspectFit"></image>
+        <text>待付款</text>
+        <text class="entry-badge" wx:if="{{orderCount.pending > 0}}">{{orderCount.pending}}</text>
+      </view>
+      <view class="entry-item" bindtap="goOrderList" data-status="preparing">
+        <image class="entry-icon" src="/images/order/paid.png" mode="aspectFit"></image>
+        <text>制作中</text>
+        <text class="entry-badge" wx:if="{{orderCount.preparing > 0}}">{{orderCount.preparing}}</text>
+      </view>
+      <view class="entry-item" bindtap="goOrderList" data-status="ready">
+        <image class="entry-icon" src="/images/order/delivering.png" mode="aspectFit"></image>
+        <text>待取餐</text>
+        <text class="entry-badge" wx:if="{{orderCount.ready > 0}}">{{orderCount.ready}}</text>
+      </view>
+      <view class="entry-item" bindtap="goOrderList" data-status="completed">
+        <image class="entry-icon" src="/images/order/completed.png" mode="aspectFit"></image>
+        <text>已完成</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 功能列表 -->
+  <view class="menu-section">
+    <view class="menu-item" bindtap="goFavorite">
+      <image class="menu-icon" src="/images/menu/favorite.png" mode="aspectFit"></image>
+      <text class="menu-text">我的收藏</text>
+      <image class="arrow-right" src="/images/arrow-right.png" mode="aspectFit"></image>
+    </view>
+    <view class="menu-item" bindtap="goCoupon">
+      <image class="menu-icon" src="/images/menu/coupon.png" mode="aspectFit"></image>
+      <text class="menu-text">优惠券</text>
+      <text class="menu-extra" wx:if="{{couponCount > 0}}">{{couponCount}}张可用</text>
+      <image class="arrow-right" src="/images/arrow-right.png" mode="aspectFit"></image>
+    </view>
+    <view class="menu-item" bindtap="goHelp">
+      <image class="menu-icon" src="/images/menu/help.png" mode="aspectFit"></image>
+      <text class="menu-text">帮助中心</text>
+      <image class="arrow-right" src="/images/arrow-right.png" mode="aspectFit"></image>
+    </view>
+    <view class="menu-item" bindtap="goFeedback">
+      <image class="menu-icon" src="/images/menu/feedback.png" mode="aspectFit"></image>
+      <text class="menu-text">意见反馈</text>
+      <image class="arrow-right" src="/images/arrow-right.png" mode="aspectFit"></image>
+    </view>
+    <view class="menu-item" bindtap="goAbout">
+      <image class="menu-icon" src="/images/menu/about.png" mode="aspectFit"></image>
+      <text class="menu-text">关于我们</text>
+      <image class="arrow-right" src="/images/arrow-right.png" mode="aspectFit"></image>
+    </view>
+  </view>
+
+  <!-- 客服 -->
+  <view class="contact-section">
+    <button class="contact-btn" open-type="contact">
+      <image class="contact-icon" src="/images/menu/service.png" mode="aspectFit"></image>
+      <text>联系客服</text>
+    </button>
+  </view>
+</view>

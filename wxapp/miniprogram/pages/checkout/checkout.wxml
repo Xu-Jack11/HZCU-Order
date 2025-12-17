@@ -1,0 +1,85 @@
+<!--checkout.wxml-->
+<view class="container">
+  <!-- 就餐信息 -->
+  <view class="dining-section">
+    <view class="dining-item">
+      <text class="label">就餐方式</text>
+      <view class="value" bindtap="chooseDiningMode">
+        <text>{{diningMode === 'dine-in' ? '堂食' : '打包'}}</text>
+        <image class="arrow-right" src="/images/arrow-right.png" mode="aspectFit"></image>
+      </view>
+    </view>
+    <view class="dining-item" wx:if="{{diningMode === 'dine-in'}}">
+      <text class="label">桌号</text>
+      <input class="table-input" placeholder="请输入桌号" bindinput="onTableNoInput" value="{{tableNo}}" />
+    </view>
+  </view>
+
+  <!-- 商家信息 -->
+  <view class="shop-section">
+    <image class="shop-logo" src="{{shopInfo.logo}}" mode="aspectFill"></image>
+    <text class="shop-name">{{shopInfo.name}}</text>
+  </view>
+
+  <!-- 商品列表 -->
+  <view class="goods-section">
+    <view class="goods-item" wx:for="{{cartList}}" wx:key="id">
+      <image class="goods-image" src="{{item.image}}" mode="aspectFill"></image>
+      <view class="goods-info">
+        <text class="goods-name">{{item.name}}</text>
+        <text class="goods-count">x{{item.count}}</text>
+      </view>
+      <text class="goods-price">¥{{item.price}}</text>
+    </view>
+  </view>
+
+  <!-- 取餐信息 -->
+  <view class="pickup-section">
+    <view class="pickup-item">
+      <text class="label">取餐时间</text>
+      <view class="value" bindtap="choosePickupTime">
+        <text>{{pickupTime || '立即取餐'}}</text>
+        <image class="arrow-right" src="/images/arrow-right.png" mode="aspectFit"></image>
+      </view>
+    </view>
+    <view class="pickup-item">
+      <text class="label">备注</text>
+      <input class="remark-input" placeholder="口味、偏好等" bindinput="onRemarkInput" value="{{remark}}" />
+    </view>
+    <view class="pickup-item">
+      <text class="label">优惠券</text>
+      <view class="value" bindtap="chooseCoupon">
+        <text>{{selectedCoupon ? selectedCoupon.title : '请选择优惠券'}}</text>
+        <text class="coupon-brief" wx:if="{{selectedCoupon}}">
+          {{couponDiscount > 0 ? '-¥' + couponDiscount : '未满足门槛'}}
+        </text>
+        <image class="arrow-right" src="/images/arrow-right.png" mode="aspectFit"></image>
+      </view>
+    </view>
+  </view>
+
+  <!-- 价格明细 -->
+  <view class="price-section">
+    <view class="price-item">
+      <text>商品金额</text>
+      <text>¥{{totalPrice}}</text>
+    </view>
+    <view class="price-item" wx:if="{{packingFee > 0}}">
+      <text>打包费</text>
+      <text>¥{{packingFee}}</text>
+    </view>
+    <view class="price-item" wx:if="{{couponDiscount > 0}}">
+      <text>优惠券</text>
+      <text class="discount">-¥{{couponDiscount}}</text>
+    </view>
+  </view>
+
+  <!-- 底部支付栏 -->
+  <view class="pay-bar">
+    <view class="pay-price">
+      <text class="label">合计：</text>
+      <text class="price">¥{{finalPrice}}</text>
+    </view>
+    <view class="pay-btn" bindtap="submitOrder">提交订单</view>
+  </view>
+</view>

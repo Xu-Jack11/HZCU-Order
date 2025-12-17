@@ -1,0 +1,66 @@
+<!--index.wxml-->
+<view class="container">
+  <!-- 顶部地址栏 -->
+  <view class="header">
+    <view class="location" bindtap="chooseLocation">
+      <image class="location-icon" src="/images/location.png" mode="aspectFit"></image>
+      <text class="location-text">{{location}}</text>
+      <image class="arrow-icon" src="/images/arrow-down.png" mode="aspectFit"></image>
+    </view>
+  </view>
+
+  <!-- 搜索框 -->
+  <view class="search-bar">
+    <view class="search-input-wrap">
+      <image class="search-icon" src="/images/search.png" mode="aspectFit"></image>
+      <input class="search-input" placeholder="今天吃点啥" placeholder-class="placeholder" bindinput="onSearchInput" bindconfirm="onSearch" confirm-type="search" value="{{searchKeyword}}" />
+      <view class="clear-icon" wx:if="{{searchKeyword && searchKeyword.length > 0}}" catchtap="clearSearch">✕</view>
+    </view>
+    <view class="search-btn" bindtap="onSearch">搜索</view>
+  </view>
+
+  <!-- 分类导航 -->
+  <scroll-view class="category-scroll" scroll-x>
+    <view class="category-list">
+      <view class="category-item {{selectedCategoryId === item.id ? 'active' : ''}}" wx:for="{{categories}}" wx:key="id" bindtap="onCategoryTap" data-id="{{item.id}}">
+        <image class="category-icon" src="{{item.icon}}" mode="aspectFit"></image>
+        <text class="category-name">{{item.name}}</text>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- 筛选标签 -->
+  <view class="filter-tabs">
+    <view class="filter-tab {{activeTab === 'nearby' ? 'active' : ''}}" bindtap="onTabChange" data-tab="nearby">附近推荐</view>
+    <view class="filter-tab {{activeTab === 'discover' ? 'active' : ''}}" bindtap="onTabChange" data-tab="discover">发现好菜</view>
+  </view>
+
+  <!-- 商家列表 -->
+  <scroll-view class="shop-list" scroll-y bindscrolltolower="loadMore">
+    <view class="shop-item" wx:for="{{shopList}}" wx:key="id" bindtap="goToShop" data-id="{{item.id}}">
+      <view class="favorite-btn {{item.isFavorite ? 'active' : ''}}" catchtap="toggleFavorite" data-id="{{item.id}}">
+        <text>{{item.isFavorite ? '已收藏' : '收藏'}}</text>
+      </view>
+      <image class="shop-logo" src="{{item.logo}}" mode="aspectFill"></image>
+      <view class="shop-info">
+        <view class="shop-name">{{item.name}}</view>
+        <view class="shop-meta">
+          <text class="shop-rating">{{item.rating}}分</text>
+          <text class="shop-sales">月售{{item.monthlySales}}</text>
+          <view class="shop-time-distance">
+            <text class="shop-time">约{{item.waitTime}}分钟</text>
+            <text class="shop-distance">{{item.distance}}</text>
+          </view>
+        </view>
+        <view class="shop-delivery">
+          <text wx:if="{{item.minPrice}}">最低消费¥{{item.minPrice}}</text>
+        </view>
+        <view class="shop-tags">
+          <text class="tag" wx:for="{{item.tags}}" wx:key="*this" wx:for-item="tag">{{tag}}</text>
+        </view>
+      </view>
+    </view>
+    <view class="loading" wx:if="{{loading}}">加载中...</view>
+    <view class="no-more" wx:if="{{noMore}}">没有更多了</view>
+  </scroll-view>
+</view>

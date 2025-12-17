@@ -1,0 +1,34 @@
+<view class="container">
+  <view class="tip" wx:if="{{payableAmount}}">
+    当前订单金额约 ¥{{payableAmount}}，可用优惠券已为你筛选
+  </view>
+
+  <scroll-view class="coupon-list" scroll-y>
+    <view class="coupon-card" wx:for="{{coupons}}" wx:key="id">
+      <view class="coupon-left">
+        <text class="amount">¥{{item.discount}}</text>
+        <text class="limit">满{{item.threshold}}可用</text>
+      </view>
+      <view class="coupon-right">
+        <view class="title-row">
+          <text class="title">{{item.title}}</text>
+          <text class="scope">{{item.scope === 'all' ? '全平台' : '指定商家'}}</text>
+        </view>
+        <view class="desc">{{item.desc}}</view>
+        <view class="meta">
+          <text>{{item.validDate}}</text>
+          <text wx:if="{{item.scope === 'shop'}}" class="shop-limit">限商家 {{item.shopId}}</text>
+        </view>
+        <view class="actions">
+          <view class="use-btn {{item.canUse ? '' : 'disabled'}}" bindtap="useCoupon" data-id="{{item.id}}">
+            {{item.canUse ? '立即使用' : '暂不可用'}}
+          </view>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <view class="footer">
+    <view class="footer-btn" bindtap="clearCoupon">不使用优惠券</view>
+  </view>
+</view>

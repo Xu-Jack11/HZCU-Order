@@ -1,0 +1,5 @@
+<view class="container">
+  <view class="title">手机号登录</view>
+  <input class="input" type="number" placeholder="请输入手机号" bindinput="onPhoneInput" value="{{phone}}" />
+  <button class="btn" bindtap="doLogin" disabled="{{!canSubmit}}">登录</button>
+</view>
