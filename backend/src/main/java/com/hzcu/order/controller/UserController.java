@@ -41,8 +41,8 @@ public class UserController {
 
       User user = userService.createOrUpdateByMobile(phone, nickname != null ? nickname : phone, avatar);
 
-      // 为手机号登录用户生成token
-      String token = "token_" + UUID.randomUUID().toString().replace("-", "");
+      // 生成简单token（使用用户ID）
+      String token = userService.createTokenFromUserId(user.getUserId());
 
       resp.put("code", 0);
       resp.put("message", "ok");
@@ -120,8 +120,8 @@ public class UserController {
       // 更新或创建用户
       User user = userService.createOrUpdateByOpenidAndPhone(openid, nickname, avatarUrl, phoneNumber, unionid);
 
-      // 生成token
-      String token = "token_" + UUID.randomUUID().toString().replace("-", "");
+      // 生成简单token（使用用户ID）
+      String token = userService.createTokenFromUserId(user.getUserId());
 
       resp.put("code", 0);
       resp.put("message", "ok");

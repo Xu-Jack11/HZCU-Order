@@ -16,7 +16,7 @@ export const request = <T = any>(options: RequestOptions): Promise<T> => {
         'Content-Type': 'application/json',
         'Cache-Control': 'no-cache',
         Pragma: 'no-cache',
-        Authorization: wx.getStorageSync('token') || '',
+        Authorization: wx.getStorageSync('token') ? `Bearer ${wx.getStorageSync('token')}` : '',
         ...options.header
       },
       success: (res) => {

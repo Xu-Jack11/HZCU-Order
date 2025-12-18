@@ -179,10 +179,25 @@ Page({
       return;
     }
 
+    // 检查登录状态
+    const token = wx.getStorageSync('token');
+    if (!token) {
+      console.log('[checkout] No token found, redirecting to login');
+      wx.showToast({
+        title: '请先登录',
+        icon: 'none'
+      });
+      setTimeout(() => {
+        wx.navigateTo({ url: '/pages/login/login' });
+      }, 1500);
+      return;
+    }
+
     wx.showLoading({ title: '提交中...' });
+    console.log('[checkout] Submitting order with token:', token);
 
     try {
-      await createOrder({
+      const orderData = {
         shopId: this.data.shopInfo?.id || 0,
         cartList: this.data.cartList,
         totalPrice: this.data.finalPrice,
@@ -190,7 +205,26 @@ Page({
         tableNo: this.data.tableNo,
         pickupTime: this.data.pickupTime,
         remark: this.data.remark
-      });
+      };
+      console.log('[checkout] Order data:', orderData);
+
+      const result: any = await createOrder(orderData);
+      console.log('[checkout] Create order response:', result);
+
+      // 检查是否有错误响应
+      if (result?.code && result.code !== '0' && result.code !== 0) {
+        console.error('[checkout] API error:', result);
+        if (result.code === '401') {
+          wx.showToast({ title: '登录已过期，请重新登录', icon: 'none' });
+          wx.removeStorageSync('token');
+          setTimeout(() => {
+            wx.navigateTo({ url: '/pages/login/login' });
+          }, 1500);
+          return;
+        }
+        throw new Error(result.message || '下单失败');
+      }
+
       wx.removeStorageSync('cartData');
       clearCartSnapshot(this.data.shopInfo?.id || 0);
       saveSelectedCoupon(null);
@@ -208,9 +242,10 @@ Page({
           }, 1500);
         }
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error('[checkout] Submit order error:', error);
       wx.showToast({
-        title: '下单失败',
+        title: error?.message || '下单失败',
         icon: 'none'
       });
     } finally {

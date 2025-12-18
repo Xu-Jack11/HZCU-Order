@@ -5,6 +5,7 @@ import java.util.List;
 public class Order {
 
   private long id;
+  private long userId;
   private long shopId;
   private String shopName;
   private String shopLogo;
@@ -47,6 +48,14 @@ public class Order {
 
   public void setId(long id) {
     this.id = id;
+  }
+
+  public long getUserId() {
+    return userId;
+  }
+
+  public void setUserId(long userId) {
+    this.userId = userId;
   }
 
   public long getShopId() {

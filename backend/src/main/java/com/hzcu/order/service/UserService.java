@@ -104,4 +104,29 @@ public class UserService {
     public User findByMobile(String mobile) {
         return userMapper.findByMobile(mobile);
     }
+
+    public User findByToken(String token) {
+        // 简单实现：使用用户ID作为token
+        // 由于微信登录时token格式是 "token_" + UUID，这里我们需要一种不同的方式
+        // 暂时使用一个简单的映射：如果token以数字开头，则解析为用户ID
+        if (token != null && token.startsWith("token_")) {
+            // 对于新用户，我们需要一个临时的实现
+            // 这里先返回null，实际项目中应该使用JWT或其他token验证方式
+            return null;
+        } else if (token != null && token.matches("\\d+")) {
+            // 如果token是纯数字，则作为用户ID
+            try {
+                Long userId = Long.parseLong(token);
+                return userMapper.findById(userId);
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        }
+        return null;
+    }
+
+    // 临时方法：从用户ID创建简单token
+    public String createTokenFromUserId(Long userId) {
+        return userId.toString();
+    }
 }

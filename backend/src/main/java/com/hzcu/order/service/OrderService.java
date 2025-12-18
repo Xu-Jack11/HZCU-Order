@@ -36,7 +36,14 @@ public class OrderService {
     return new PageResult<>(paged, total);
   }
 
-  public Order createOrder(CreateOrderRequest request) {
+  public PageResult<Order> listOrdersByUser(Long userId, String status, int page, int pageSize) {
+    // 根据用户ID查询订单
+    List<Order> paged = orderRepo.findByUserId(userId, status, page, pageSize);
+    int total = orderRepo.countByUserId(userId, status);
+    return new PageResult<>(paged, total);
+  }
+
+  public Order createOrder(CreateOrderRequest request, Long userId) {
     Shop shop = dataStore.findShop(request.getShopId())
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "canteen not found"));
 
@@ -52,6 +59,7 @@ public class OrderService {
     int totalCount = goods.stream().mapToInt(OrderGoods::getCount).sum();
 
     Order order = new Order();
+    order.setUserId(userId);
     order.setShopId(shop.getId());
     order.setShopName(shop.getName());
     order.setShopLogo(shop.getLogo());

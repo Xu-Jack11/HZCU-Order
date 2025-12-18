@@ -40,12 +40,24 @@ Page({
 
   // 加载订单数量
   loadOrderCount() {
+    const token = wx.getStorageSync('token');
+    if (!token) {
+      // 未登录时，不加载订单数量
+      this.setData({
+        orderCount: { pending: 0, preparing: 0, ready: 0 }
+      });
+      return;
+    }
+
     // 依据后端分页返回的 total 统计各状态数量
     const fetchOrders = (status: string) => new Promise<number>((resolve) => {
       wx.request({
         url: 'http://localhost:8080/api/v1/orders',
         method: 'GET',
         data: { status, page: 1, pageSize: 1 },
+        header: {
+          'Authorization': `Bearer ${token}`
+        },
         success: (res) => {
           const total = (res?.data?.data?.total) ?? 0;
           resolve(Number(total) || 0);

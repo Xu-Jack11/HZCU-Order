@@ -25,23 +25,24 @@ public class OrderJdbcRepository {
   }
 
   public Order create(Order order) {
-    String sql = "INSERT INTO orders (shop_id, shop_name, shop_logo, total_count, total_price, status, status_text, create_time, dining_mode, table_no, pickup_time, remark) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    String sql = "INSERT INTO orders (user_id, shop_id, shop_name, shop_logo, total_count, total_price, status, status_text, create_time, dining_mode, table_no, pickup_time, remark) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     KeyHolder keyHolder = new GeneratedKeyHolder();
-    
+
     jdbcTemplate.update((Connection con) -> {
       PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-      ps.setLong(1, order.getShopId());
-      ps.setString(2, order.getShopName());
-      ps.setString(3, order.getShopLogo());
-      ps.setInt(4, order.getTotalCount());
-      ps.setDouble(5, order.getTotalPrice());
-      ps.setString(6, order.getStatus());
-      ps.setString(7, order.getStatusText());
-      ps.setString(8, order.getCreateTime());
-      ps.setString(9, order.getDiningMode());
-      ps.setString(10, order.getTableNo());
-      ps.setString(11, order.getPickupTime());
-      ps.setString(12, order.getRemark());
+      ps.setLong(1, order.getUserId());
+      ps.setLong(2, order.getShopId());
+      ps.setString(3, order.getShopName());
+      ps.setString(4, order.getShopLogo());
+      ps.setInt(5, order.getTotalCount());
+      ps.setDouble(6, order.getTotalPrice());
+      ps.setString(7, order.getStatus());
+      ps.setString(8, order.getStatusText());
+      ps.setString(9, order.getCreateTime());
+      ps.setString(10, order.getDiningMode());
+      ps.setString(11, order.getTableNo());
+      ps.setString(12, order.getPickupTime());
+      ps.setString(13, order.getRemark());
       return ps;
     }, keyHolder);
 
@@ -84,6 +85,7 @@ public class OrderJdbcRepository {
             public Order mapRow(ResultSet rs, int rowNum) throws SQLException {
                 Order order = new Order();
                 order.setId(rs.getLong("id"));
+                order.setUserId(rs.getLong("user_id"));
                 order.setShopId(rs.getLong("shop_id"));
                 order.setShopName(rs.getString("shop_name"));
                 order.setShopLogo(rs.getString("shop_logo"));
@@ -96,7 +98,7 @@ public class OrderJdbcRepository {
                 order.setTableNo(rs.getString("table_no"));
                 order.setPickupTime(rs.getString("pickup_time"));
                 order.setRemark(rs.getString("remark"));
-                
+
                 // Fetch goods for this order
                 order.setGoods(findGoodsByOrderId(order.getId()));
                 return order;
@@ -104,6 +106,51 @@ public class OrderJdbcRepository {
         }, args);
     } catch (Exception e) {
         // If table doesn't exist, return empty list
+        return Collections.emptyList();
+    }
+  }
+
+  public List<Order> findByUserId(Long userId, String status, int page, int pageSize) {
+    StringBuilder sql = new StringBuilder("SELECT * FROM orders WHERE user_id = ?");
+    if (status != null && !"all".equalsIgnoreCase(status)) {
+        sql.append(" AND status = ?");
+    }
+    sql.append(" ORDER BY create_time DESC LIMIT ? OFFSET ?");
+
+    int offset = (page - 1) * pageSize;
+    Object[] args;
+    if (status != null && !"all".equalsIgnoreCase(status)) {
+        args = new Object[]{userId, status, pageSize, offset};
+    } else {
+        args = new Object[]{userId, pageSize, offset};
+    }
+
+    try {
+        return jdbcTemplate.query(sql.toString(), new RowMapper<Order>() {
+            @Override
+            public Order mapRow(ResultSet rs, int rowNum) throws SQLException {
+                Order order = new Order();
+                order.setId(rs.getLong("id"));
+                order.setUserId(rs.getLong("user_id"));
+                order.setShopId(rs.getLong("shop_id"));
+                order.setShopName(rs.getString("shop_name"));
+                order.setShopLogo(rs.getString("shop_logo"));
+                order.setTotalCount(rs.getInt("total_count"));
+                order.setTotalPrice(rs.getDouble("total_price"));
+                order.setStatus(rs.getString("status"));
+                order.setStatusText(rs.getString("status_text"));
+                order.setCreateTime(rs.getString("create_time"));
+                order.setDiningMode(rs.getString("dining_mode"));
+                order.setTableNo(rs.getString("table_no"));
+                order.setPickupTime(rs.getString("pickup_time"));
+                order.setRemark(rs.getString("remark"));
+
+                // Fetch goods for this order
+                order.setGoods(findGoodsByOrderId(order.getId()));
+                return order;
+            }
+        }, args);
+    } catch (Exception e) {
         return Collections.emptyList();
     }
   }
@@ -138,12 +185,26 @@ public class OrderJdbcRepository {
       } catch (Exception e) { return 0; }
   }
 
+  public int countByUserId(Long userId, String status) {
+      String sql = "SELECT count(*) FROM orders WHERE user_id = ?";
+      if (status != null && !"all".equalsIgnoreCase(status)) {
+          sql += " AND status = ?";
+          try {
+            return jdbcTemplate.queryForObject(sql, Integer.class, userId, status);
+          } catch (Exception e) { return 0; }
+      }
+      try {
+        return jdbcTemplate.queryForObject(sql, Integer.class, userId);
+      } catch (Exception e) { return 0; }
+  }
+
   public Order findById(long orderId) {
       String sql = "SELECT * FROM orders WHERE id = ?";
       try {
           return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> {
               Order order = new Order();
               order.setId(rs.getLong("id"));
+              order.setUserId(rs.getLong("user_id"));
               order.setShopId(rs.getLong("shop_id"));
               order.setShopName(rs.getString("shop_name"));
               order.setShopLogo(rs.getString("shop_logo"));

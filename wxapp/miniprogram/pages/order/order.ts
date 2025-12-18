@@ -74,7 +74,23 @@ Page({
   // 加载订单列表
   async loadOrderList() {
     if (this.data.loading || (this.data.noMore && this.data.page > 1)) return;
+    
+    // 检查登录状态
+    const token = wx.getStorageSync('token');
+    if (!token) {
+      console.log('[order] No token found, redirecting to login');
+      wx.showToast({
+        title: '请先登录',
+        icon: 'none'
+      });
+      setTimeout(() => {
+        wx.navigateTo({ url: '/pages/login/login' });
+      }, 1500);
+      return;
+    }
+    
     this.setData({ loading: true });
+    console.log('[order] Loading orders with token:', token);
 
     try {
       const res: any = await fetchOrders({
@@ -82,6 +98,22 @@ Page({
         page: this.data.page,
         pageSize: PAGE_SIZE
       });
+      console.log('[order] Fetch orders response:', res);
+      
+      // 检查是否有错误响应
+      if (res?.code && res.code !== '0' && res.code !== 0) {
+        console.error('[order] API error:', res);
+        if (res.code === '401') {
+          wx.showToast({ title: '登录已过期，请重新登录', icon: 'none' });
+          wx.removeStorageSync('token');
+          setTimeout(() => {
+            wx.navigateTo({ url: '/pages/login/login' });
+          }, 1500);
+          return;
+        }
+        throw new Error(res.message || '加载失败');
+      }
+      
       // 统一过滤掉已取消订单（兼容不同后端命名/大小写/文案）
       const list = (res?.list || []).filter((item: any) => {
         const status = String(item.status || '').toLowerCase();
@@ -98,10 +130,11 @@ Page({
         noMore,
         orderList: merged
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error('[order] Load orders error:', error);
       this.setData({ loading: false });
       wx.showToast({
-        title: '订单加载失败',
+        title: error?.message || '订单加载失败',
         icon: 'none'
       });
     }
