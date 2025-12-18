@@ -22,6 +22,13 @@ spring:
       fetch-size: 200
       max-rows: 10000
 
+# 微信小程序配置
+wechat:
+  # 微信小程序AppID
+  appid: ${WECHAT_APPID:wx1e39a676fdf7c829}
+  # 微信小程序AppSecret
+  secret: ${WECHAT_SECRET:2fdad10ad3d5370a9e0a785d306fd4d6}
+
 mybatis:
   configuration:
     map-underscore-to-camel-case: true

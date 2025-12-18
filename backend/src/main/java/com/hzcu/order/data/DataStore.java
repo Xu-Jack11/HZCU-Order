@@ -79,6 +79,25 @@ public class DataStore {
         });
   }
 
+  public synchronized UserProfile upsertUserByOpenid(String openid, String nickname, String avatar, String unionid) {
+    return users.stream().filter(u -> openid != null && openid.equals(u.getOpenid())).findFirst()
+        .map(u -> {
+          if (nickname != null) u.setNickname(nickname);
+          if (avatar != null) u.setAvatar(avatar);
+          if (unionid != null) u.setUnionid(unionid);
+          u.setLastLoginAt(LocalDateTime.now().format(formatter));
+          return u;
+        })
+        .orElseGet(() -> {
+          UserProfile u = new UserProfile(userIdGenerator.getAndIncrement(), nickname != null ? nickname : "微信用户", avatar, null);
+          u.setOpenid(openid);
+          u.setUnionid(unionid);
+          u.setLastLoginAt(LocalDateTime.now().format(formatter));
+          users.add(u);
+          return u;
+        });
+  }
+
   public Order addOrder(Order order) {
     long id = orderIdGenerator.incrementAndGet();
     order.setId(id);

@@ -1,5 +1,31 @@
 <view class="container">
-  <view class="title">手机号登录</view>
-  <input class="input" type="number" placeholder="请输入手机号" bindinput="onPhoneInput" value="{{phone}}" />
-  <button class="btn" bindtap="doLogin" disabled="{{!canSubmit}}">登录</button>
+  <view class="title">欢迎登录</view>
+
+  <!-- 微信登录按钮（包含手机号获取） -->
+  <button class="btn-wechat" open-type="getPhoneNumber" bindgetphonenumber="onGetPhoneNumber">
+    微信一键登录
+  </button>
+
+  <!-- 备用微信登录按钮（如果手机号获取失败） -->
+  <button class="btn-wechat-secondary" bindtap="doWechatLogin" wx:if="{{showSecondaryLogin}}">
+    微信登录（手动授权）
+  </button>
+
+  <!-- 或者分割线 -->
+  <view class="divider" wx:if="{{showPhoneLogin}}">
+    <view class="divider-line"></view>
+    <text class="divider-text">或</text>
+    <view class="divider-line"></view>
+  </view>
+
+  <!-- 手机号登录 -->
+  <view class="phone-login" wx:if="{{showPhoneLogin}}">
+    <input class="input" type="number" placeholder="请输入手机号" bindinput="onPhoneInput" value="{{phone}}" />
+    <button class="btn" bindtap="doLogin" disabled="{{!canSubmit}}">手机号登录</button>
+  </view>
+
+  <!-- 登录说明 -->
+  <view class="login-tips">
+    登录即表示同意《用户协议》和《隐私政策》
+  </view>
 </view>

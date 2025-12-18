@@ -65,34 +65,40 @@ Page({
     });
   },
 
-  // 登录
+  // 跳转登录页面
   goLogin() {
-    wx.getUserProfile({
-      desc: '用于完善用户信息',
-      success: (res) => {
-        const userInfo = {
-          avatarUrl: res.userInfo.avatarUrl,
-          nickName: res.userInfo.nickName,
-          phone: ''
-        };
-        wx.setStorageSync('userInfo', userInfo);
-        this.setData({
-          isLogin: true,
-          userInfo
-        });
-      },
-      fail: () => {
-        wx.showToast({
-          title: '登录失败',
-          icon: 'none'
-        });
-      }
-    });
+    wx.navigateTo({ url: '/pages/login/login' });
   },
 
-  // 跳转绑定手机号页面
-  goBindPhone() {
-    wx.navigateTo({ url: '/pages/login/login' });
+  // 退出登录
+  logout() {
+    wx.showModal({
+      title: '确认退出',
+      content: '确定要退出登录吗？',
+      success: (res) => {
+        if (res.confirm) {
+          // 清除本地存储
+          wx.removeStorageSync('token');
+          wx.removeStorageSync('userInfo');
+          wx.removeStorageSync('openid');
+
+          // 更新页面状态
+          this.setData({
+            isLogin: false,
+            userInfo: {
+              avatarUrl: '',
+              nickName: '',
+              phone: ''
+            }
+          });
+
+          wx.showToast({
+            title: '已退出登录',
+            icon: 'success'
+          });
+        }
+      }
+    });
   },
 
   // 设置
