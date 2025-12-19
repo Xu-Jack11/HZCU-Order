@@ -25,31 +25,42 @@ public class CustomUserDetailsService implements UserDetailsService {
         @Override
         @Transactional
         public UserDetails loadUserByUsername(String identifier) throws UsernameNotFoundException {
-                System.out.println("Loading user by identifier: " + identifier);
-                // Try user first
+                System.out.println("Auth request for identifier: " + identifier);
+
+                if (identifier.startsWith("MERCHANT:")) {
+                        String username = identifier.substring(9);
+                        return merchantAccountRepository.findByUsername(username)
+                                        .map(merchant -> {
+                                                System.out.println("Found Merchant: " + merchant.getUsername()
+                                                                + ", Canteen: "
+                                                                + (merchant.getCanteen() != null
+                                                                                ? merchant.getCanteen().getName()
+                                                                                : "NULL"));
+                                                return UserPrincipal.create(merchant);
+                                        })
+                                        .orElseThrow(() -> new UsernameNotFoundException(
+                                                        "Merchant not found: " + username));
+                }
+
+                if (identifier.startsWith("ADMIN:")) {
+                        String username = identifier.substring(6);
+                        return adminUserRepository.findByUsername(username)
+                                        .map(admin -> {
+                                                System.out.println("Found Admin: " + admin.getUsername());
+                                                return UserPrincipal.create(admin);
+                                        })
+                                        .orElseThrow(() -> new UsernameNotFoundException(
+                                                        "Admin not found: " + username));
+                }
+
+                // Default fallback for user/wechat
                 return userRepository.findByOpenid(identifier)
                                 .map(user -> {
                                         System.out.println("Found User: " + user.getNickname());
                                         return UserPrincipal.create(user);
                                 })
-                                .orElseGet(() -> merchantAccountRepository.findByUsername(identifier)
-                                                .map(merchant -> {
-                                                        System.out.println("Found Merchant: " + merchant.getUsername());
-                                                        return UserPrincipal.create(merchant);
-                                                })
-                                                .orElseGet(() -> adminUserRepository.findByUsername(identifier)
-                                                                .map(admin -> {
-                                                                        System.out.println("Found Admin: "
-                                                                                        + admin.getUsername());
-                                                                        return UserPrincipal.create(admin);
-                                                                })
-                                                                .orElseThrow(() -> {
-                                                                        System.err.println("Principal not found: "
-                                                                                        + identifier);
-                                                                        return new UsernameNotFoundException(
-                                                                                        "Principal not found with identifier : "
-                                                                                                        + identifier);
-                                                                })));
+                                .orElseThrow(() -> new UsernameNotFoundException(
+                                                "User not found with identifier: " + identifier));
         }
 
         @Transactional

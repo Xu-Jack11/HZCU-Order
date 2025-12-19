@@ -27,7 +27,10 @@ export default function LoginPage() {
                 localStorage.setItem('token', res.data.token);
                 localStorage.setItem('user', JSON.stringify(res.data.user));
                 localStorage.setItem('role', loginType === 'merchant' ? 'ROLE_MERCHANT' : 'ROLE_ADMIN');
-                router.push('/dashboard');
+
+                // Redirect to appropriate dashboard
+                const targetPath = loginType === 'merchant' ? '/dashboard' : '/admin/dashboard';
+                router.push(targetPath);
             } else {
                 setError(res.message || '登录失败');
             }

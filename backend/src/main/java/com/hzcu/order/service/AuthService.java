@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -52,11 +53,11 @@ public class AuthService {
     }
 
     public LoginResponse loginMerchant(String username, String password) {
-        return authenticateAndGenerateToken(username, password, "ROLE_MERCHANT");
+        return authenticateAndGenerateToken("MERCHANT:" + username, password, "ROLE_MERCHANT");
     }
 
     public LoginResponse loginAdmin(String username, String password) {
-        return authenticateAndGenerateToken(username, password, "ROLE_ADMIN");
+        return authenticateAndGenerateToken("ADMIN:" + username, password, "ROLE_ADMIN");
     }
 
     private LoginResponse authenticateAndGenerateToken(String username, String password, String expectedRole) {
@@ -65,6 +66,14 @@ public class AuthService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
+
+        // Strict role check
+        boolean hasRequiredRole = principal.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals(expectedRole));
+
+        if (!hasRequiredRole) {
+            throw new BadCredentialsException("Account not authorized for this login type");
+        }
 
         if (expectedRole.equals("ROLE_MERCHANT")) {
             merchantAccountService.updateLastLogin(principal.getId());
@@ -76,9 +85,18 @@ public class AuthService {
 
         Map<String, Object> userInfo = new HashMap<>();
         userInfo.put("id", principal.getId());
-        userInfo.put("username", principal.getUsername());
-        userInfo.put("canteenId", principal.getCanteenId());
-        userInfo.put("canteenName", principal.getCanteenName());
+        String usernameForFrontend = principal.getUsername();
+        if (usernameForFrontend.contains(":")) {
+            usernameForFrontend = usernameForFrontend.split(":", 2)[1];
+        }
+        userInfo.put("username", usernameForFrontend);
+
+        if (expectedRole.equals("ROLE_MERCHANT")) {
+            userInfo.put("canteenId", principal.getCanteenId());
+            userInfo.put("canteenName", principal.getCanteenName());
+        } else {
+            userInfo.put("realName", "Site Administrator");
+        }
 
         return LoginResponse.builder()
                 .token(token)

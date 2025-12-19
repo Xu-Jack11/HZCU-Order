@@ -48,7 +48,7 @@ public class UserPrincipal implements UserDetails {
                 merchant.getMerchantAccountId(),
                 merchant.getCanteen() != null ? merchant.getCanteen().getCanteenId() : null,
                 merchant.getCanteen() != null ? merchant.getCanteen().getName() : null,
-                merchant.getUsername(),
+                "MERCHANT:" + merchant.getUsername(),
                 merchant.getPasswordHash(),
                 authorities);
     }
@@ -60,7 +60,7 @@ public class UserPrincipal implements UserDetails {
                 admin.getAdminId(),
                 null,
                 null,
-                admin.getUsername(),
+                "ADMIN:" + admin.getUsername(),
                 admin.getPasswordHash(),
                 authorities);
     }
