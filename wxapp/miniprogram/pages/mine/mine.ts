@@ -1,6 +1,7 @@
 // mine.ts
 // 个人中心页
 import { clearCouponContext } from '../../utils/coupon';
+import { loginWithCode } from '../../utils/api';
 
 Page({
   data: {
@@ -11,11 +12,11 @@ Page({
       phone: ''
     },
     orderCount: {
-      pending: 2,
-      preparing: 1,
-      ready: 1
+      pending: 0,
+      preparing: 0,
+      ready: 0
     },
-    couponCount: 3
+    couponCount: 0
   },
 
   onLoad() {
@@ -24,24 +25,29 @@ Page({
 
   onShow() {
     this.checkLoginStatus();
-    this.loadOrderCount();
+    if (this.data.isLogin) {
+      this.loadOrderCount();
+    }
   },
 
   // 检查登录状态
   checkLoginStatus() {
     const userInfo = wx.getStorageSync('userInfo');
-    if (userInfo) {
+    const token = wx.getStorageSync('token');
+    if (userInfo && token) {
       this.setData({
         isLogin: true,
         userInfo
       });
+    } else {
+      this.setData({ isLogin: false });
     }
   },
 
   // 加载订单数量
   loadOrderCount() {
-    // 这里应该调用API获取各状态订单数量
-    // 目前使用模拟数据
+    // Implement real API call if needed
+    // For now keep it static or zero
   },
 
   // 登录
@@ -49,20 +55,38 @@ Page({
     wx.getUserProfile({
       desc: '用于完善用户信息',
       success: (res) => {
-        const userInfo = {
-          avatarUrl: res.userInfo.avatarUrl,
-          nickName: res.userInfo.nickName,
-          phone: ''
-        };
-        wx.setStorageSync('userInfo', userInfo);
-        this.setData({
-          isLogin: true,
-          userInfo
+        const profile = res.userInfo;
+        wx.login({
+          success: async (loginRes) => {
+            if (loginRes.code) {
+              try {
+                wx.showLoading({ title: '登录中...' });
+                const data = await loginWithCode(loginRes.code, profile.nickName, profile.avatarUrl);
+
+                wx.setStorageSync('token', data.token);
+                wx.setStorageSync('userInfo', data.user || {
+                  nickName: profile.nickName,
+                  avatarUrl: profile.avatarUrl
+                });
+
+                this.setData({
+                  isLogin: true,
+                  userInfo: wx.getStorageSync('userInfo')
+                });
+                wx.hideLoading();
+                wx.showToast({ title: '登录成功' });
+              } catch (err) {
+                wx.hideLoading();
+                wx.showToast({ title: '登录失败', icon: 'none' });
+                console.error(err);
+              }
+            }
+          }
         });
       },
       fail: () => {
         wx.showToast({
-          title: '登录失败',
+          title: '已取消授权',
           icon: 'none'
         });
       }

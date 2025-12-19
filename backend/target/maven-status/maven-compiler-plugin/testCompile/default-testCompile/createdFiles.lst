@@ -1,0 +1,4 @@
+com\hzcu\order\service\OrderServiceTest.class
+com\hzcu\order\HzcuOrderApplicationTests.class
+com\hzcu\order\service\AuthServiceTest.class
+com\hzcu\order\service\CanteenServiceTest.class

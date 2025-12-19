@@ -1,0 +1,14 @@
+{
+  "filePath": ".spec-workflow/specs/merchant-management/tasks.md",
+  "currentVersion": 1,
+  "snapshots": [
+    {
+      "version": 1,
+      "filename": "snapshot-001.json",
+      "timestamp": "2025-12-19T03:10:10.605Z",
+      "trigger": "initial",
+      "approvalId": "approval_1766113810595_gfxc6a16f",
+      "approvalTitle": "Merchant Management Tasks"
+    }
+  ]
+}

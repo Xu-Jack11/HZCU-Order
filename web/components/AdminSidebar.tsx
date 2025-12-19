@@ -7,7 +7,7 @@ import styles from './AdminSidebar.module.css';
 
 const menuItems = [
     { name: '平台概览', href: '/admin/dashboard', icon: LayoutDashboard },
-    { name: '食堂管理', href: '/admin/dashboard/canteens', icon: Store },
+    { name: '商家管理', href: '/admin/dashboard/canteens', icon: Store },
     { name: '用户管理', href: '/admin/dashboard/users', icon: Users },
     { name: '财务报表', href: '/admin/dashboard/finance', icon: BarChart3 },
     { name: '系统设置', href: '/admin/dashboard/settings', icon: Settings },
