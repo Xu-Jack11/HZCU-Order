@@ -1,1 +1,18 @@
 ~*.*
+
+# Maven
+target/
+
+# Node.js
+node_modules/
+dist/
+build/
+coverage/
+
+# Next.js
+.next/
+.swc/
+
+# WeChat Mini Program
+project.private.config.json
+miniprogram_npm/
