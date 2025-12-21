@@ -2,18 +2,18 @@
 <view class="container">
   <!-- 用户信息 -->
   <view class="user-header">
-    <view class="user-info" bindtap="goLogin" wx:if="{{!isLogin}}">
+    <view class="user-info" wx:if="{{!isLogin}}">
       <image class="user-avatar" src="/images/default-avatar.png" mode="aspectFill"></image>
       <view class="user-text">
-        <text class="login-hint">点击登录</text>
+        <button class="login-btn-new" open-type="getPhoneNumber" bindgetphonenumber="onGetPhoneNumber">点击登录</button>
         <text class="login-desc">登录后享受更多服务</text>
       </view>
     </view>
     <view class="user-info" wx:else>
-      <image class="user-avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
+      <image class="user-avatar" src="{{userInfo.avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill"></image>
       <view class="user-text">
-        <text class="user-name">{{userInfo.nickName}}</text>
-        <text class="user-phone">{{userInfo.phone}}</text>
+        <text class="user-name">{{userInfo.nickName || '微信用户'}}</text>
+        <text class="user-phone">{{userInfo.mobile || '已授权登录'}}</text>
       </view>
     </view>
     <image class="setting-icon" src="/images/setting.png" mode="aspectFit" bindtap="goSetting"></image>
@@ -77,6 +77,11 @@
     <view class="menu-item" bindtap="goAbout">
       <image class="menu-icon" src="/images/menu/about.png" mode="aspectFit"></image>
       <text class="menu-text">关于我们</text>
+      <image class="arrow-right" src="/images/arrow-right.png" mode="aspectFit"></image>
+    </view>
+    <view class="menu-item logout-item" bindtap="onLogout" wx:if="{{isLogin}}">
+      <image class="menu-icon" src="/images/menu/logout.png" mode="aspectFit"></image>
+      <text class="menu-text" style="color: #ff3b30;">退出登录</text>
       <image class="arrow-right" src="/images/arrow-right.png" mode="aspectFit"></image>
     </view>
   </view>

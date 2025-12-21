@@ -40,7 +40,15 @@ public class OrderController {
             @RequestBody OrderDTO orderDTO) {
 
         Order order = entityMapper.toEntity(orderDTO);
-        userService.findById(currentUser.getId()).ifPresent(order::setUser);
+
+        com.hzcu.order.entity.User user = userService.findById(currentUser.getId())
+                .orElseThrow(() -> new RuntimeException("User not found: " + currentUser.getId()));
+        order.setUser(user);
+
+        // Ensure canteen is set (handled by mapper but explicit check is good)
+        if (order.getCanteen() == null || order.getCanteen().getCanteenId() == null) {
+            throw new RuntimeException("Canteen ID is required");
+        }
 
         List<OrderItem> items = orderDTO.getItems().stream()
                 .map(entityMapper::toEntity)

@@ -8,6 +8,7 @@ import com.hzcu.order.entity.OrderStatusLog;
 import com.hzcu.order.repository.OrderRepository;
 import com.hzcu.order.repository.OrderItemRepository;
 import com.hzcu.order.repository.OrderStatusLogRepository;
+import com.hzcu.order.repository.DishRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +31,9 @@ public class OrderService {
     private OrderStatusLogRepository orderStatusLogRepository;
 
     @Autowired
+    private DishRepository dishRepository;
+
+    @Autowired
     private NotificationService notificationService;
 
     @Transactional
@@ -38,11 +42,35 @@ public class OrderService {
         order.setStatus("PENDING_PAYMENT");
         order.setCreatedAt(LocalDateTime.now());
 
+        // Prevent cascade saving of items with null order_id
+        order.setItems(null);
+
         Order savedOrder = orderRepository.save(order);
+
         for (OrderItem item : items) {
             item.setOrder(savedOrder);
+            
+            // 确保菜品名称不为null，如果为null则通过dish_id查询
+            String dishName = null;
+            if (item.getDish() != null && item.getDish().getName() != null) {
+                dishName = item.getDish().getName();
+            } else if (item.getDish() != null && item.getDish().getDishId() != null) {
+                // 如果name为null但dishId存在，从数据库查询完整的dish信息
+                Optional<com.hzcu.order.entity.Dish> dishOpt = dishRepository.findById(item.getDish().getDishId());
+                if (dishOpt.isPresent()) {
+                    dishName = dishOpt.get().getName();
+                    item.setDish(dishOpt.get()); // 更新为完整的dish对象
+                }
+            }
+            item.setDishName(dishName); // 设置菜品名称快照
+            
+            if (item.getTotalPrice() == null) {
+                // simple calc fallback
+                item.setTotalPrice(item.getUnitPrice().multiply(new java.math.BigDecimal(item.getQuantity())));
+            }
             orderItemRepository.save(item);
         }
+        savedOrder.setItems(items); // Set back for return
 
         logStatusChange(savedOrder, null, "PENDING_PAYMENT", "SYSTEM", 0L, "Order created");
         return savedOrder;
@@ -84,15 +112,22 @@ public class OrderService {
 
     private String generatePickupCode(Canteen canteen) {
         LocalDateTime startOfDay = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0).withNano(0);
-        return orderRepository.findFirstByCanteenAndCreatedAtAfterOrderByCreatedAtDesc(canteen, startOfDay)
-                .map(lastOrder -> {
-                    String lastCode = lastOrder.getPickupCode();
-                    if (lastCode != null && lastCode.matches("\\d+")) {
-                        return String.valueOf(Integer.parseInt(lastCode) + 1);
+        List<String> codes = orderRepository.findPickupCodesByCanteenSince(canteen, startOfDay);
+
+        int maxCode = 100;
+        for (String code : codes) {
+            try {
+                if (code.matches("\\d+")) {
+                    int val = Integer.parseInt(code);
+                    if (val > maxCode) {
+                        maxCode = val;
                     }
-                    return "100";
-                })
-                .orElse("100");
+                }
+            } catch (NumberFormatException ignored) {
+            }
+        }
+
+        return String.valueOf(maxCode + 1);
     }
 
     private void logStatusChange(Order order, String fromStatus, String toStatus, String operatorType, Long operatorId,

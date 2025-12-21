@@ -29,6 +29,11 @@ spring:
 server:
   port: 8080
 
+app:
+  jwt:
+    secret: dGhpcy1pcy1hLXZlcnktc2VjcmV0LWtleS1mb3ItaHpjdS1vcmRlci1zeXN0ZW0tYmFja2VuZA==
+    expiration: 604800000  # 7 days in milliseconds
+
 springdoc:
   api-docs:
     path: /v3/api-docs
@@ -36,8 +41,10 @@ springdoc:
     path: /swagger-ui.html
 
 wechat:
-  app-id: ${WECHAT_APP_ID:wx1234567890abcdef}
-  app-secret: ${WECHAT_APP_SECRET:abcdef1234567890}
+  # 微信小程序AppID
+  appid: ${WECHAT_APPID:wx1e39a676fdf7c829}
+  # 微信小程序AppSecret
+  secret: ${WECHAT_SECRET:abcd1234efgh5678ijkl9012mnop3456}
   mch:
     mch-id: ${WECHAT_MCH_ID:1234567890}
     api-v3-key: ${WECHAT_API_V3_KEY:key1234567890abcdef}

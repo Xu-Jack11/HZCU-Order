@@ -10,6 +10,8 @@ public class OrderDTO {
     private Long orderId;
     private Long userId;
     private Long canteenId;
+    private String canteenName;
+    private String canteenLogo;
     private String orderNo;
     private String status;
     private String diningMode;

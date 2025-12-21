@@ -25,6 +25,10 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
         Optional<Order> findFirstByCanteenAndCreatedAtAfterOrderByCreatedAtDesc(Canteen canteen, LocalDateTime since);
 
+        @Query("SELECT o.pickupCode FROM Order o WHERE o.canteen = :canteen AND o.createdAt >= :since AND o.pickupCode IS NOT NULL")
+        List<String> findPickupCodesByCanteenSince(@Param("canteen") Canteen canteen,
+                        @Param("since") LocalDateTime since);
+
         @Query("SELECT COUNT(o) FROM Order o WHERE o.canteen = :canteen AND o.status = :status AND o.createdAt >= :since")
         long countByCanteenAndStatusSince(@Param("canteen") Canteen canteen, @Param("status") String status,
                         @Param("since") LocalDateTime since);

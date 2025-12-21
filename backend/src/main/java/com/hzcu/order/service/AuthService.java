@@ -30,6 +30,9 @@ public class AuthService {
     private AdminService adminService;
 
     @Autowired
+    private WechatMiniProgramService wechatService;
+
+    @Autowired
     private JwtTokenProvider tokenProvider;
 
     public LoginResponse loginWithWechat(String openid, String nickname, String avatarUrl) {
@@ -45,11 +48,64 @@ public class AuthService {
         userInfo.put("username", user.getOpenid());
         userInfo.put("nickname", user.getNickname());
         userInfo.put("avatarUrl", user.getAvatarUrl());
+        userInfo.put("mobile", user.getMobile());
 
         return LoginResponse.builder()
                 .token(token)
                 .user(userInfo)
                 .build();
+    }
+
+    public LoginResponse loginWithWechatCode(String code, String nickname, String avatarUrl, String phoneCode) {
+        Map<String, String> wechatInfo = wechatService.getOpenid(code);
+        if (wechatInfo == null || wechatInfo.get("openid") == null) {
+            throw new BadCredentialsException("Failed to get openid from WeChat");
+        }
+
+        String openid = wechatInfo.get("openid");
+        User user = userService.createOrUpdateUser(openid, nickname, avatarUrl);
+
+        // If phoneCode is provided during login, bind it immediately
+        if (phoneCode != null && !phoneCode.isEmpty()) {
+            System.out.println("Processing login with phoneCode: " + phoneCode);
+            String phoneNumber = wechatService.getPhoneNumber(phoneCode);
+            System.out.println("Retrieved phone number: " + phoneNumber);
+            if (phoneNumber != null) {
+                user.setMobile(phoneNumber);
+                userService.save(user);
+            }
+        } else {
+            System.out.println("Login without phoneCode");
+        }
+
+        UserPrincipal userPrincipal = UserPrincipal.create(user);
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                userPrincipal, null, userPrincipal.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        String token = tokenProvider.generateToken(authentication);
+
+        Map<String, Object> userInfo = new HashMap<>();
+        userInfo.put("id", user.getUserId());
+        userInfo.put("username", user.getOpenid());
+        userInfo.put("nickname", user.getNickname());
+        userInfo.put("avatarUrl", user.getAvatarUrl());
+        userInfo.put("mobile", user.getMobile());
+
+        return LoginResponse.builder()
+                .token(token)
+                .user(userInfo)
+                .build();
+    }
+
+    public void bindPhone(Long userId, String phoneCode) {
+        String phoneNumber = wechatService.getPhoneNumber(phoneCode);
+        if (phoneNumber == null) {
+            throw new RuntimeException("Failed to get phone number from WeChat");
+        }
+        User user = userService.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setMobile(phoneNumber);
+        userService.save(user);
     }
 
     public LoginResponse loginMerchant(String username, String password) {

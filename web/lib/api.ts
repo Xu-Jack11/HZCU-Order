@@ -1,5 +1,16 @@
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
 
+// Helper function to clear auth data and redirect to login
+function handleAuthError() {
+    if (typeof window !== 'undefined') {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        localStorage.removeItem('role');
+        // Redirect to login page
+        window.location.href = '/login';
+    }
+}
+
 async function request(path: string, options: RequestInit = {}) {
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
@@ -13,6 +24,12 @@ async function request(path: string, options: RequestInit = {}) {
         ...options,
         headers,
     });
+
+    // Handle 401 Unauthorized - token expired or invalid
+    if (response.status === 401) {
+        handleAuthError();
+        throw new Error('登录已过期，请重新登录');
+    }
 
     const resData = await response.json();
 

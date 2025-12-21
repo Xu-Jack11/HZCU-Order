@@ -25,6 +25,11 @@ public class UserService {
     }
 
     @Transactional
+    public User save(User user) {
+        return userRepository.save(user);
+    }
+
+    @Transactional
     public User createOrUpdateUser(String openid, String nickname, String avatarUrl) {
         User user = userRepository.findByOpenid(openid)
                 .orElse(User.builder()

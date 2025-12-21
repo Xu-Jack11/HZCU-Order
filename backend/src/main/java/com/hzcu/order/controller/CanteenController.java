@@ -33,12 +33,40 @@ public class CanteenController {
         return ApiResponse.success(canteens);
     }
 
+    @Autowired
+    private com.hzcu.order.service.DishService dishService;
+
     @GetMapping("/{id}")
     @Operation(summary = "Get canteen by ID")
     public ApiResponse<CanteenDTO> getCanteen(@PathVariable Long id) {
         return canteenService.getCanteenById(id)
                 .map(entityMapper::toDto)
                 .map(ApiResponse::success)
+                .orElse(ApiResponse.error(404, "Canteen not found"));
+    }
+
+    @GetMapping("/{id}/categories")
+    @Operation(summary = "Get canteen categories with dishes")
+    public ApiResponse<List<com.hzcu.order.dto.DishCategoryDTO>> getCanteenCategories(@PathVariable Long id) {
+        return canteenService.getCanteenById(id)
+                .map(canteen -> {
+                    List<com.hzcu.order.entity.DishCategory> categories = dishService.getCategoriesByCanteen(canteen);
+                    List<com.hzcu.order.entity.Dish> dishes = dishService.getDishesByCanteen(canteen);
+
+                    List<com.hzcu.order.dto.DishCategoryDTO> categoryDTOs = categories.stream()
+                            .map(entityMapper::toDto)
+                            .collect(Collectors.toList());
+
+                    java.util.Map<Long, List<com.hzcu.order.dto.DishDTO>> dishesByCategoryId = dishes.stream()
+                            .map(entityMapper::toDto)
+                            .collect(Collectors.groupingBy(com.hzcu.order.dto.DishDTO::getCategoryId));
+
+                    for (com.hzcu.order.dto.DishCategoryDTO catDto : categoryDTOs) {
+                        catDto.setDishes(dishesByCategoryId.getOrDefault(catDto.getId(), new java.util.ArrayList<>()));
+                    }
+
+                    return ApiResponse.success(categoryDTOs);
+                })
                 .orElse(ApiResponse.error(404, "Canteen not found"));
     }
 }

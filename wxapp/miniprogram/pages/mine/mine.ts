@@ -1,7 +1,7 @@
 // mine.ts
 // 个人中心页
 import { clearCouponContext } from '../../utils/coupon';
-import { loginWithCode } from '../../utils/api';
+import { loginWithCode, logout } from '../../utils/api';
 
 Page({
   data: {
@@ -9,7 +9,7 @@ Page({
     userInfo: {
       avatarUrl: '',
       nickName: '',
-      phone: ''
+      mobile: ''
     },
     orderCount: {
       pending: 0,
@@ -47,50 +47,122 @@ Page({
   // 加载订单数量
   loadOrderCount() {
     // Implement real API call if needed
-    // For now keep it static or zero
   },
 
-  // 登录
-  goLogin() {
-    wx.getUserProfile({
-      desc: '用于完善用户信息',
-      success: (res) => {
-        const profile = res.userInfo;
-        wx.login({
-          success: async (loginRes) => {
-            if (loginRes.code) {
-              try {
-                wx.showLoading({ title: '登录中...' });
-                const data = await loginWithCode(loginRes.code, profile.nickName, profile.avatarUrl);
+  // 登录入口：合并获取手机号
+  onGetPhoneNumber(e: any) {
+    console.log('onGetPhoneNumber event:', e);
 
-                wx.setStorageSync('token', data.token);
-                wx.setStorageSync('userInfo', data.user || {
-                  nickName: profile.nickName,
-                  avatarUrl: profile.avatarUrl
-                });
+    // Check if error is due to permission (common for personal accounts)
+    if (e.detail.errMsg !== 'getPhoneNumber:ok') {
+      console.error('getPhoneNumber failed:', e.detail.errMsg);
 
-                this.setData({
-                  isLogin: true,
-                  userInfo: wx.getStorageSync('userInfo')
-                });
-                wx.hideLoading();
-                wx.showToast({ title: '登录成功' });
-              } catch (err) {
-                wx.hideLoading();
-                wx.showToast({ title: '登录失败', icon: 'none' });
-                console.error(err);
-              }
+      if (e.detail.errMsg.includes('no permission') || e.detail.errMsg.includes('user deny')) {
+        wx.showModal({
+          title: '开发模式提示',
+          content: '当前AppID无权限获取手机号（可能是个人账号）。是否使用模拟手机号登录？',
+          success: (res) => {
+            if (res.confirm) {
+              this.handleLoginWithMockPhone();
             }
           }
         });
-      },
-      fail: () => {
-        wx.showToast({
-          title: '已取消授权',
-          icon: 'none'
-        });
+        return;
+      }
+
+      wx.showToast({ title: '授权失败', icon: 'none' });
+      return;
+    }
+
+    const phoneCode = e.detail.code;
+    console.log('phoneCode obtained:', phoneCode);
+    this.performLogin(phoneCode);
+  },
+
+  handleLoginWithMockPhone() {
+    console.log('Using mock phone number for login');
+    // Using a special indicator or null for phoneCode, backend should handle or we use a separate mock flow
+    // Ideally, we still need wx.login code
+    this.performLogin(undefined, true);
+  },
+
+  performLogin(phoneCode?: string, isMock: boolean = false) {
+
+    wx.login({
+      success: async (loginRes) => {
+        console.log('wx.login success, code:', loginRes.code);
+        if (loginRes.code) {
+          try {
+            wx.showLoading({ title: '登录中...' });
+
+            // If using mock phone, pass a special flag or handle differently.
+            // For simplicity, if isMock is true, we pass undefined for phoneCode. 
+            // NOTE: Backend needs to handle "login without phone code" or we need a dev endpoint.
+            // But since 'loginWithCode' takes phoneCode, if we pass undefined, it just logs in without binding.
+
+            const data = await loginWithCode(loginRes.code, undefined, undefined, phoneCode);
+            console.log('Login success, data:', data);
+
+            // If it was a mock login, we might want to manually set a fake mobile in specific dev scenarios
+            // but for now, let's just let the user log in.
+            if (isMock) {
+              data.user.mobile = "13800000000 (Mock)";
+              wx.showToast({ title: '模拟登录成功/未绑定真实手机' });
+            } else {
+              wx.showToast({ title: '登录成功' });
+            }
+
+            wx.setStorageSync('token', data.token);
+            wx.setStorageSync('userInfo', data.user);
+
+            this.setData({
+              isLogin: true,
+              userInfo: data.user
+            });
+            wx.hideLoading();
+          } catch (err) {
+            wx.hideLoading();
+            wx.showToast({ title: '登录失败', icon: 'none' });
+            console.error(err);
+          }
+        }
       }
     });
+  },
+
+  // 退出登录
+  async onLogout() {
+    wx.showModal({
+      title: '提示',
+      content: '确定要退出登录吗？',
+      success: async (res) => {
+        if (res.confirm) {
+          try {
+            await logout();
+          } catch (e) {
+            console.error('Remote logout error', e);
+          }
+          wx.removeStorageSync('token');
+          wx.removeStorageSync('userInfo');
+          this.setData({
+            isLogin: false,
+            userInfo: {
+              avatarUrl: '',
+              nickName: '',
+              mobile: ''
+            }
+          });
+          wx.showToast({ title: '已退出' });
+        }
+      }
+    });
+  },
+
+  async refreshUserInfo() {
+    const userInfo = wx.getStorageSync('userInfo');
+    if (userInfo) {
+      this.setData({ userInfo });
+    }
   },
 
   // 设置
@@ -126,7 +198,7 @@ Page({
   goHelp() {
     wx.showModal({
       title: '帮助中心',
-      content: '常见问题与客服指南将很快上线，当前可直接联系客服或提交反馈。',
+      content: '常见问题与客服指南将很快上线。',
       showCancel: false
     });
   },
@@ -135,7 +207,7 @@ Page({
   goFeedback() {
     wx.showModal({
       title: '意见反馈',
-      content: '请通过客服或邮件 support@example.com 联系我们，您的建议会让产品更好。',
+      content: '请通过客服联系我们。',
       showCancel: false
     });
   },
@@ -144,7 +216,7 @@ Page({
   goAbout() {
     wx.showModal({
       title: '关于我们',
-      content: '城院点餐由校园信息化小组维护，致力于提供更快更稳的点餐体验。',
+      content: '城院点餐专注于校园点餐体验。',
       showCancel: false
     });
   }

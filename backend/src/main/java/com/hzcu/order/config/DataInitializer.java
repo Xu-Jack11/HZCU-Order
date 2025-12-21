@@ -5,13 +5,12 @@ import com.hzcu.order.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-@Component
+//@Component
 public class DataInitializer implements CommandLineRunner {
 
     @Autowired

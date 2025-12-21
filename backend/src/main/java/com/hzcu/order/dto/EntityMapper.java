@@ -37,6 +37,8 @@ public interface EntityMapper {
 
     @Mapping(source = "user.userId", target = "userId")
     @Mapping(source = "canteen.canteenId", target = "canteenId")
+    @Mapping(source = "canteen.name", target = "canteenName")
+    @Mapping(source = "canteen.imageUrl", target = "canteenLogo")
     OrderDTO toDto(Order order);
 
     @Mapping(source = "userId", target = "user.userId")
@@ -44,9 +46,11 @@ public interface EntityMapper {
     Order toEntity(OrderDTO dto);
 
     @Mapping(source = "dish.dishId", target = "dishId")
+    @Mapping(source = "dish.coverImage", target = "dishImage")
     OrderItemDTO toDto(OrderItem orderItem);
 
     @Mapping(source = "dishId", target = "dish.dishId")
+    @Mapping(source = "dishName", target = "dishName")
     OrderItem toEntity(OrderItemDTO dto);
 
     @Mapping(source = "canteen.canteenId", target = "canteenId")

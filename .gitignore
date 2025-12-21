@@ -16,3 +16,5 @@ coverage/
 # WeChat Mini Program
 project.private.config.json
 miniprogram_npm/
+
+.env

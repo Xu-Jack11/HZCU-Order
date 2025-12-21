@@ -9,10 +9,6 @@
         <image class="arrow-right" src="/images/arrow-right.png" mode="aspectFit"></image>
       </view>
     </view>
-    <view class="dining-item" wx:if="{{diningMode === 'dine-in'}}">
-      <text class="label">桌号</text>
-      <input class="table-input" placeholder="请输入桌号" bindinput="onTableNoInput" value="{{tableNo}}" />
-    </view>
   </view>
 
   <!-- 商家信息 -->

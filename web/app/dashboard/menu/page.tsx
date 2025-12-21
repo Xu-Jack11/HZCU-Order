@@ -51,12 +51,13 @@ export default function MenuPage() {
                 const mapped = dishRes.data.map((d: any) => ({
                     id: d.dishId.toString(),
                     name: d.name,
-                    price: d.basePrice,
+                    price: d.price ?? d.basePrice ?? 0,
                     category: d.categoryName || '其它',
+                    categoryId: d.categoryId,
                     isAvailable: d.status === 1,
-                    sales: d.monthSales || 0,
+                    sales: d.sales ?? d.monthSales ?? 0,
                     description: d.description,
-                    image: d.coverImage
+                    image: d.imageUrl ?? d.coverImage
                 }));
                 setDishes(mapped);
             }
@@ -138,9 +139,9 @@ export default function MenuPage() {
         e.preventDefault();
         const payload = {
             name: formData.name,
-            basePrice: parseFloat(formData.price),
+            price: parseFloat(formData.price),
             description: formData.description,
-            coverImage: formData.image,
+            imageUrl: formData.image,
             categoryName: formData.category,
             status: editingDish ? (editingDish.isAvailable ? 1 : 0) : 1
         };

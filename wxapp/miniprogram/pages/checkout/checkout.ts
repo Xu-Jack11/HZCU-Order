@@ -171,14 +171,6 @@ Page({
 
   // 提交订单并支付
   async submitOrder() {
-    if (this.data.diningMode === DINING_MODES.DINE_IN && !this.data.tableNo) {
-      wx.showToast({
-        title: '请输入桌号',
-        icon: 'none'
-      });
-      return;
-    }
-
     wx.showLoading({ title: '提交中...' });
 
     try {

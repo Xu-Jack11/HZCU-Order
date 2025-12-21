@@ -23,11 +23,34 @@ public class AuthController {
     @PostMapping("/login/wechat")
     @Operation(summary = "Login with WeChat", description = "Exchange WeChat info for a JWT token")
     public ApiResponse<LoginResponse> loginWechat(@RequestBody WechatLoginRequest request) {
-        LoginResponse response = authService.loginWithWechat(
-                request.getOpenid(),
+        LoginResponse response = authService.loginWithWechatCode(
+                request.getCode(),
                 request.getNickname(),
-                request.getAvatarUrl());
+                request.getAvatarUrl(),
+                request.getPhoneCode());
         return ApiResponse.success("Login successful", response);
+    }
+
+    @PostMapping("/logout")
+    @Operation(summary = "Logout")
+    public ApiResponse<Void> logout() {
+        // Since we use stateless JWT, we just return success.
+        // Client will remove the token.
+        return ApiResponse.success("Logout successful", null);
+    }
+
+    @PostMapping("/wechat/phone")
+    @Operation(summary = "Bind WeChat Phone Number")
+    public ApiResponse<Void> bindPhone(@RequestBody WechatPhoneRequest request) {
+        // Assume the user is already authenticated via JWT
+        // We'll need to get the user ID from SecurityContext
+        org.springframework.security.core.Authentication authentication = org.springframework.security.core.context.SecurityContextHolder
+                .getContext().getAuthentication();
+        com.hzcu.order.security.UserPrincipal principal = (com.hzcu.order.security.UserPrincipal) authentication
+                .getPrincipal();
+
+        authService.bindPhone(principal.getId(), request.getCode());
+        return ApiResponse.success("Phone number bound successfully", null);
     }
 
     @PostMapping("/login/merchant")
@@ -46,9 +69,15 @@ public class AuthController {
 
     @Data
     public static class WechatLoginRequest {
-        private String openid;
+        private String code;
         private String nickname;
         private String avatarUrl;
+        private String phoneCode;
+    }
+
+    @Data
+    public static class WechatPhoneRequest {
+        private String code;
     }
 
     @Data

@@ -21,6 +21,7 @@ interface OrderItem {
   status: string;
   statusText: string;
   createTime: string;
+  pickupCode?: string;
 }
 
 const PAGE_SIZE = 6;
@@ -119,7 +120,7 @@ Page({
     if (!order) return;
     wx.showModal({
       title: '订单详情',
-      content: `商家：${order.shopName}\n金额：¥${order.totalPrice}\n状态：${order.statusText}`,
+      content: `商家：${order.shopName}\n取餐码：${order.pickupCode || '--'}\n金额：¥${order.totalPrice}\n状态：${order.statusText}`,
       showCancel: false
     });
   },

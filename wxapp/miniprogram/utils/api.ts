@@ -17,7 +17,7 @@ export interface CanteenDetailResponse {
   comments: any[];
 }
 
-export const loginWithCode = async (code: string, nickname?: string, avatarUrl?: string) => {
+export const loginWithCode = async (code: string, nickname?: string, avatarUrl?: string, phoneCode?: string) => {
   if (USE_MOCK) {
     return {
       token: 'mock-token',
@@ -30,7 +30,24 @@ export const loginWithCode = async (code: string, nickname?: string, avatarUrl?:
   const resp = await request({
     url: '/auth/login/wechat',
     method: 'POST',
-    data: { code, nickname, avatarUrl }
+    data: { code, nickname, avatarUrl, phoneCode }
+  });
+  return unwrap(resp);
+};
+
+export const logout = async () => {
+  const resp = await request({
+    url: '/auth/logout',
+    method: 'POST'
+  });
+  return unwrap(resp);
+};
+
+export const bindPhoneNumber = async (code: string) => {
+  const resp = await request({
+    url: '/auth/wechat/phone',
+    method: 'POST',
+    data: { code }
   });
   return unwrap(resp);
 };
@@ -164,7 +181,7 @@ export const fetchOrders = async (params: { status: string; page: number; pageSi
     shopLogo: o.canteenLogo,
     goods: o.items ? o.items.map((it: any) => ({
       id: it.dishId,
-      name: it.dishName,
+      name: it.dishName || '未知菜品',
       image: it.dishImage,
       price: it.price,
       count: it.quantity
@@ -173,7 +190,8 @@ export const fetchOrders = async (params: { status: string; page: number; pageSi
     totalPrice: o.totalAmount,
     status: o.status.toLowerCase(),
     statusText: o.status,
-    createTime: o.createdAt
+    createTime: o.createdAt,
+    pickupCode: o.pickupCode
   }));
 
   return {

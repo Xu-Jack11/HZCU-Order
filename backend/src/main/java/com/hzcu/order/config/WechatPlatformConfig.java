@@ -8,8 +8,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "wechat")
 public class WechatPlatformConfig {
-    private String appId;
-    private String appSecret;
+    private String appid;
+    private String secret;
     private MchConfig mch;
 
     @Data
