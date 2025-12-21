@@ -1,10 +1,17 @@
 package com.hzcu.order.dto;
 
-import com.hzcu.order.entity.*;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
+
+import com.hzcu.order.entity.Canteen;
+import com.hzcu.order.entity.Dish;
+import com.hzcu.order.entity.DishCategory;
+import com.hzcu.order.entity.MerchantAccount;
+import com.hzcu.order.entity.Order;
+import com.hzcu.order.entity.OrderItem;
+import com.hzcu.order.entity.User;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface EntityMapper {
