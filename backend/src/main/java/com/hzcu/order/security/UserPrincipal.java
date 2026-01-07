@@ -3,7 +3,6 @@ package com.hzcu.order.security;
 import com.hzcu.order.entity.User;
 import com.hzcu.order.entity.MerchantAccount;
 import com.hzcu.order.entity.AdminUser;
-import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -11,7 +10,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.List;
 
-@Getter
 public class UserPrincipal implements UserDetails {
     private Long id;
     private Long canteenId;
@@ -28,6 +26,33 @@ public class UserPrincipal implements UserDetails {
         this.username = username;
         this.password = password;
         this.authorities = authorities;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public Long getCanteenId() {
+        return canteenId;
+    }
+
+    public String getCanteenName() {
+        return canteenName;
+    }
+
+    @Override
+    public String getUsername() {
+        return username;
+    }
+
+    @Override
+    public String getPassword() {
+        return password;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return authorities;
     }
 
     public static UserPrincipal create(User user) {

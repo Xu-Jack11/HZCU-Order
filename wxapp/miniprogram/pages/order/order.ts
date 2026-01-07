@@ -151,6 +151,32 @@ Page({
     });
   },
 
+  // 取消订单
+  cancelOrder(e: any) {
+    const orderId = e.currentTarget.dataset.id;
+    wx.showModal({
+      title: '提示',
+      content: '确定要取消该订单吗？',
+      success: async (res) => {
+        if (res.confirm) {
+          try {
+            await cancelOrder(orderId);
+            wx.showToast({
+              title: '订单已取消',
+              icon: 'success'
+            });
+            this.refreshList();
+          } catch (error) {
+            wx.showToast({
+              title: '操作失败',
+              icon: 'none'
+            });
+          }
+        }
+      }
+    });
+  },
+
   // 去付款
   async payOrder(e: any) {
     const orderId = e.currentTarget.dataset.id;

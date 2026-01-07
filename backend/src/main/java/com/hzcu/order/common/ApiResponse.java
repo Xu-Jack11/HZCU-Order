@@ -1,51 +1,100 @@
 package com.hzcu.order.common;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class ApiResponse<T> {
     private boolean success;
     private String message;
     private T data;
     private Integer code;
 
+    public ApiResponse() {}
+
+    public ApiResponse(boolean success, String message, T data, Integer code) {
+        this.success = success;
+        this.message = message;
+        this.data = data;
+        this.code = code;
+    }
+
+    public boolean isSuccess() {
+        return success;
+    }
+
+    public void setSuccess(boolean success) {
+        this.success = success;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public T getData() {
+        return data;
+    }
+
+    public void setData(T data) {
+        this.data = data;
+    }
+
+    public Integer getCode() {
+        return code;
+    }
+
+    public void setCode(Integer code) {
+        this.code = code;
+    }
+
     public static <T> ApiResponse<T> success(T data) {
-        return ApiResponse.<T>builder()
-                .success(true)
-                .message("Success")
-                .data(data)
-                .code(200)
-                .build();
+        return new ApiResponse<>(true, "Success", data, 200);
     }
 
     public static <T> ApiResponse<T> success(String message, T data) {
-        return ApiResponse.<T>builder()
-                .success(true)
-                .message(message)
-                .data(data)
-                .code(200)
-                .build();
+        return new ApiResponse<>(true, message, data, 200);
     }
 
     public static <T> ApiResponse<T> error(String message) {
-        return ApiResponse.<T>builder()
-                .success(false)
-                .message(message)
-                .code(500)
-                .build();
+        return new ApiResponse<>(false, message, null, 500);
     }
 
     public static <T> ApiResponse<T> error(Integer code, String message) {
-        return ApiResponse.<T>builder()
-                .success(false)
-                .message(message)
-                .code(code)
-                .build();
+        return new ApiResponse<>(false, message, null, code);
+    }
+
+    public static <T> ApiResponseBuilder<T> builder() {
+        return new ApiResponseBuilder<>();
+    }
+
+    public static class ApiResponseBuilder<T> {
+        private boolean success;
+        private String message;
+        private T data;
+        private Integer code;
+
+        public ApiResponseBuilder<T> success(boolean success) {
+            this.success = success;
+            return this;
+        }
+
+        public ApiResponseBuilder<T> message(String message) {
+            this.message = message;
+            return this;
+        }
+
+        public ApiResponseBuilder<T> data(T data) {
+            this.data = data;
+            return this;
+        }
+
+        public ApiResponseBuilder<T> code(Integer code) {
+            this.code = code;
+            return this;
+        }
+
+        public ApiResponse<T> build() {
+            return new ApiResponse<>(success, message, data, code);
+        }
     }
 }

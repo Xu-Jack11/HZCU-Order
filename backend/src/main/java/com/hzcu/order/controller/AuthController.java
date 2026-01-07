@@ -5,7 +5,6 @@ import com.hzcu.order.service.AuthService;
 import com.hzcu.order.dto.LoginResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -67,22 +66,75 @@ public class AuthController {
         return ApiResponse.success("Admin login successful", response);
     }
 
-    @Data
     public static class WechatLoginRequest {
         private String code;
         private String nickname;
         private String avatarUrl;
         private String phoneCode;
+
+        public String getCode() {
+            return code;
+        }
+
+        public void setCode(String code) {
+            this.code = code;
+        }
+
+        public String getNickname() {
+            return nickname;
+        }
+
+        public void setNickname(String nickname) {
+            this.nickname = nickname;
+        }
+
+        public String getAvatarUrl() {
+            return avatarUrl;
+        }
+
+        public void setAvatarUrl(String avatarUrl) {
+            this.avatarUrl = avatarUrl;
+        }
+
+        public String getPhoneCode() {
+            return phoneCode;
+        }
+
+        public void setPhoneCode(String phoneCode) {
+            this.phoneCode = phoneCode;
+        }
     }
 
-    @Data
     public static class WechatPhoneRequest {
         private String code;
+
+        public String getCode() {
+            return code;
+        }
+
+        public void setCode(String code) {
+            this.code = code;
+        }
     }
 
-    @Data
     public static class UserLoginRequest {
         private String username;
         private String password;
+
+        public String getUsername() {
+            return username;
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
+        }
     }
 }

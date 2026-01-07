@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -32,10 +33,13 @@ public class UserService {
     @Transactional
     public User createOrUpdateUser(String openid, String nickname, String avatarUrl) {
         User user = userRepository.findByOpenid(openid)
-                .orElse(User.builder()
-                        .openid(openid)
-                        .status(1)
-                        .build());
+                .orElseGet(() -> {
+                    User newUser = new User();
+                    newUser.setOpenid(openid);
+                    newUser.setStatus(1);
+                    newUser.setBalance(BigDecimal.ZERO);
+                    return newUser;
+                });
 
         user.setNickname(nickname);
         user.setAvatarUrl(avatarUrl);
@@ -54,5 +58,18 @@ public class UserService {
             user.setStatus(status);
             userRepository.save(user);
         });
+    }
+
+    @Transactional
+    public User recharge(Long userId, BigDecimal amount) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        if (user.getBalance() == null) {
+            user.setBalance(BigDecimal.ZERO);
+        }
+        
+        user.setBalance(user.getBalance().add(amount));
+        return userRepository.save(user);
     }
 }

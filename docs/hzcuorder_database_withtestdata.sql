@@ -1,4 +1,4 @@
--- MySQL dump 10.13  Distrib 8.0.42, for Win64 (x86_64)
+﻿-- MySQL dump 10.13  Distrib 8.0.42, for Win64 (x86_64)
 --
 -- Host: 127.0.0.1    Database: hzcuorder
 -- ------------------------------------------------------
@@ -26,9 +26,9 @@ CREATE TABLE `admin_permission` (
   `code` varchar(50) NOT NULL,
   `name` varchar(100) DEFAULT NULL,
   `module` varchar(50) DEFAULT NULL,
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `created_at` datetime,
   PRIMARY KEY (`code`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -49,9 +49,9 @@ CREATE TABLE `admin_role` (
   `role_id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(100) DEFAULT NULL,
   `description` text,
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `created_at` datetime,
   PRIMARY KEY (`role_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -72,13 +72,13 @@ CREATE TABLE `admin_role_permission` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `role_id` bigint unsigned NOT NULL,
   `permission_code` varchar(50) NOT NULL,
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `created_at` datetime,
   PRIMARY KEY (`id`),
   KEY `role_id` (`role_id`),
   KEY `permission_code` (`permission_code`),
   CONSTRAINT `admin_role_permission_ibfk_1` FOREIGN KEY (`role_id`) REFERENCES `admin_role` (`role_id`),
   CONSTRAINT `admin_role_permission_ibfk_2` FOREIGN KEY (`permission_code`) REFERENCES `admin_permission` (`code`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -104,11 +104,11 @@ CREATE TABLE `admin_user` (
   `email` varchar(100) DEFAULT NULL,
   `status` tinyint DEFAULT '1',
   `last_login_at` datetime DEFAULT NULL,
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `created_at` datetime,
+  `updated_at` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`admin_id`),
   UNIQUE KEY `username` (`username`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -116,7 +116,7 @@ CREATE TABLE `admin_user` (
 --
 
 /*!40000 ALTER TABLE `admin_user` DISABLE KEYS */;
-INSERT INTO `admin_user` VALUES (1,'admin','$2a$10$3PayhyxiJPRIxlabH2gpce6bqbokE9D42qSrD4sx0i9X7p1qZNyGW','系统管理员',NULL,NULL,1,'2025-12-21 14:39:07','2025-12-19 00:26:46','2025-12-21 14:39:07');
+INSERT INTO `admin_user` VALUES (1,'admin','$2a$10$3PayhyxiJPRIxlabH2gpce6bqbokE9D42qSrD4sx0i9X7p1qZNyGW','',NULL,NULL,1,'2025-12-21 14:39:07','2025-12-19 00:26:46','2025-12-21 14:39:07');
 /*!40000 ALTER TABLE `admin_user` ENABLE KEYS */;
 
 --
@@ -130,13 +130,13 @@ CREATE TABLE `admin_user_role` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `role_id` bigint unsigned NOT NULL,
   `admin_id` bigint unsigned NOT NULL,
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `created_at` datetime,
   PRIMARY KEY (`id`),
   UNIQUE KEY `admin_id` (`admin_id`,`role_id`),
   KEY `role_id` (`role_id`),
   CONSTRAINT `admin_user_role_ibfk_1` FOREIGN KEY (`role_id`) REFERENCES `admin_role` (`role_id`),
   CONSTRAINT `admin_user_role_ibfk_2` FOREIGN KEY (`admin_id`) REFERENCES `admin_user` (`admin_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -163,9 +163,9 @@ CREATE TABLE `announcement` (
   `effective_to` datetime DEFAULT NULL,
   `status` tinyint DEFAULT '1' COMMENT '1:active, 0:inactive',
   `created_by` bigint unsigned DEFAULT NULL,
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `created_at` datetime,
   PRIMARY KEY (`announcement_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -188,11 +188,11 @@ CREATE TABLE `audit_log` (
   `operator_id` bigint unsigned DEFAULT NULL,
   `action` varchar(100) DEFAULT NULL,
   `request_path` varchar(500) DEFAULT NULL,
-  `changes` json DEFAULT NULL,
+  `changes` text DEFAULT NULL,
   `ip_address` varchar(45) DEFAULT NULL,
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `created_at` datetime,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -218,10 +218,10 @@ CREATE TABLE `banner` (
   `sort_order` int DEFAULT '0',
   `status` tinyint DEFAULT '1' COMMENT '1:active, 0:inactive',
   `created_by` bigint unsigned DEFAULT NULL,
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `created_at` datetime,
+  `updated_at` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`banner_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -244,11 +244,11 @@ CREATE TABLE `bundle` (
   `name` varchar(200) DEFAULT NULL,
   `total_price` decimal(10,2) DEFAULT NULL,
   `status` tinyint DEFAULT '1' COMMENT '1:active, 0:inactive',
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `created_at` datetime,
   PRIMARY KEY (`id`),
   KEY `canteen_id` (`canteen_id`),
   CONSTRAINT `bundle_ibfk_1` FOREIGN KEY (`canteen_id`) REFERENCES `canteen` (`canteen_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -270,13 +270,13 @@ CREATE TABLE `bundle_item` (
   `bundle_id` bigint unsigned NOT NULL,
   `dish_id` bigint unsigned NOT NULL,
   `quantity` int DEFAULT '1',
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `created_at` datetime,
   PRIMARY KEY (`id`),
   KEY `bundle_id` (`bundle_id`),
   KEY `dish_id` (`dish_id`),
   CONSTRAINT `bundle_item_ibfk_1` FOREIGN KEY (`bundle_id`) REFERENCES `bundle` (`id`),
   CONSTRAINT `bundle_item_ibfk_2` FOREIGN KEY (`dish_id`) REFERENCES `dish` (`dish_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -303,13 +303,13 @@ CREATE TABLE `canteen` (
   `business_hours` varchar(100) DEFAULT NULL,
   `service_fee_rate` decimal(5,4) DEFAULT '0.0000',
   `remark` text,
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `created_at` datetime,
+  `updated_at` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `is_deleted` tinyint DEFAULT '0',
   `sort_order` int DEFAULT '0',
   `image_url` varchar(500) DEFAULT NULL,
   PRIMARY KEY (`canteen_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -317,7 +317,7 @@ CREATE TABLE `canteen` (
 --
 
 /*!40000 ALTER TABLE `canteen` DISABLE KEYS */;
-INSERT INTO `canteen` VALUES (1,'瓦香鸡米饭','主校区',NULL,NULL,1,NULL,NULL,NULL,'2025-12-18 17:05:53','2025-12-20 00:18:02',0,NULL,NULL),(2,'测试商家','南校区',NULL,NULL,1,NULL,NULL,NULL,'2025-12-19 12:06:15','2025-12-20 00:18:02',0,NULL,NULL),(4,'APITestMerchantFlat','???','API Loc Flat','12345678',1,'09:00-20:00',0.1000,'Test','2025-12-19 12:31:43','2025-12-20 00:18:02',0,0,'http://test.com/img.jpg');
+INSERT INTO `canteen` VALUES (1,'','',NULL,NULL,1,NULL,NULL,NULL,'2025-12-18 17:05:53','2025-12-20 00:18:02',0,NULL,NULL),(2,'娴嬭瘯鍟嗗','',NULL,NULL,1,NULL,NULL,NULL,'2025-12-19 12:06:15','2025-12-20 00:18:02',0,NULL,NULL),(4,'APITestMerchantFlat','???','API Loc Flat','12345678',1,'09:00-20:00',0.1000,'Test','2025-12-19 12:31:43','2025-12-20 00:18:02',0,0,'http://test.com/img.jpg');
 /*!40000 ALTER TABLE `canteen` ENABLE KEYS */;
 
 --
@@ -333,11 +333,11 @@ CREATE TABLE `canteen_announcement` (
   `title` varchar(200) DEFAULT NULL,
   `content` text,
   `type` varchar(20) DEFAULT NULL COMMENT 'notice,promotion,maintenance',
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `created_at` datetime,
   PRIMARY KEY (`id`),
   KEY `canteen_id` (`canteen_id`),
   CONSTRAINT `canteen_announcement_ibfk_1` FOREIGN KEY (`canteen_id`) REFERENCES `canteen` (`canteen_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -359,11 +359,11 @@ CREATE TABLE `canteen_status` (
   `canteen_id` bigint unsigned NOT NULL,
   `status` varchar(20) DEFAULT NULL COMMENT 'open,closed,busy,maintenance',
   `estimated_wait_time` int DEFAULT '0' COMMENT 'minutes',
-  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `updated_at` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `canteen_id` (`canteen_id`),
   CONSTRAINT `canteen_status_ibfk_1` FOREIGN KEY (`canteen_id`) REFERENCES `canteen` (`canteen_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -383,13 +383,13 @@ DROP TABLE IF EXISTS `cart_snapshot`;
 CREATE TABLE `cart_snapshot` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `user_id` bigint unsigned NOT NULL,
-  `items` json DEFAULT NULL,
+  `items` text DEFAULT NULL,
   `total_amount` decimal(10,2) DEFAULT NULL,
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `created_at` datetime,
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`),
   CONSTRAINT `cart_snapshot_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -421,9 +421,9 @@ CREATE TABLE `coupon_template` (
   `valid_to` datetime DEFAULT NULL,
   `status` tinyint DEFAULT '1' COMMENT '1:active, 0:inactive',
   `created_by` bigint unsigned DEFAULT NULL,
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `created_at` datetime,
   PRIMARY KEY (`coupon_template_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -450,13 +450,13 @@ CREATE TABLE `dish` (
   `base_price` decimal(10,2) DEFAULT NULL,
   `status` tinyint DEFAULT '1',
   `is_deleted` tinyint DEFAULT '0',
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `created_at` datetime,
+  `updated_at` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `category_id` bigint DEFAULT NULL,
   PRIMARY KEY (`dish_id`),
   KEY `canteen_id` (`canteen_id`),
   CONSTRAINT `dish_ibfk_1` FOREIGN KEY (`canteen_id`) REFERENCES `canteen` (`canteen_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -464,7 +464,7 @@ CREATE TABLE `dish` (
 --
 
 /*!40000 ALTER TABLE `dish` DISABLE KEYS */;
-INSERT INTO `dish` VALUES (1,1,'红烧肉盖饭','经典口味，肥而不腻','',NULL,18.00,1,0,'2025-12-19 00:36:33','2025-12-19 10:27:39',4),(2,1,'宫保鸡丁盖饭','酸甜适口，鸡肉鲜嫩',NULL,0,15.00,1,0,'2025-12-19 00:36:33','2025-12-19 00:36:33',1),(22,1,'Test Dish',NULL,NULL,0,10.00,1,1,'2025-12-19 10:16:32','2025-12-19 10:22:02',1),(23,1,'方便面','好吃','',NULL,10.00,1,0,'2025-12-19 10:21:35','2025-12-19 10:21:55',2);
+INSERT INTO `dish` VALUES (1,1,'','','',NULL,18.00,1,0,'2025-12-19 00:36:33','2025-12-19 10:27:39',4),(2,1,'瀹繚楦′竵鐩栭キ','',NULL,0,15.00,1,0,'2025-12-19 00:36:33','2025-12-19 00:36:33',1),(22,1,'Test Dish',NULL,NULL,0,10.00,1,1,'2025-12-19 10:16:32','2025-12-19 10:22:02',1),(23,1,'','濂藉悆','',NULL,10.00,1,0,'2025-12-19 10:21:35','2025-12-19 10:21:55',2);
 /*!40000 ALTER TABLE `dish` ENABLE KEYS */;
 
 --
@@ -479,13 +479,13 @@ CREATE TABLE `dish_category` (
   `canteen_id` bigint unsigned NOT NULL,
   `name` varchar(100) DEFAULT NULL,
   `sort_order` int DEFAULT '0',
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `created_at` datetime,
   `status` tinyint DEFAULT '1',
-  `updated_at` datetime(6) DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `canteen_id` (`canteen_id`),
   CONSTRAINT `dish_category_ibfk_1` FOREIGN KEY (`canteen_id`) REFERENCES `canteen` (`canteen_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -493,7 +493,7 @@ CREATE TABLE `dish_category` (
 --
 
 /*!40000 ALTER TABLE `dish_category` DISABLE KEYS */;
-INSERT INTO `dish_category` VALUES (1,1,'招牌主菜',1,'2025-12-19 00:36:33',1,'2025-12-19 00:36:32.621596'),(2,1,'套餐',99,'2025-12-19 01:44:46',1,'2025-12-19 01:44:45.521459'),(3,1,'主食',99,'2025-12-19 09:58:44',1,'2025-12-19 09:58:43.522024'),(4,1,'热销',99,'2025-12-19 10:22:56',1,'2025-12-19 10:22:56.289169');
+INSERT INTO `dish_category` VALUES (1,1,'鎷涚墝涓昏彍',1,'2025-12-19 00:36:33',1,'2025-12-19 00:36:32.621596'),(2,1,'濂楅',99,'2025-12-19 01:44:46',1,'2025-12-19 01:44:45.521459'),(3,1,'涓婚',99,'2025-12-19 09:58:44',1,'2025-12-19 09:58:43.522024'),(4,1,'鐑攢',99,'2025-12-19 10:22:56',1,'2025-12-19 10:22:56.289169');
 /*!40000 ALTER TABLE `dish_category` ENABLE KEYS */;
 
 --
@@ -511,14 +511,14 @@ CREATE TABLE `dish_spec` (
   `stock` int DEFAULT '0',
   `is_default` tinyint DEFAULT '0' COMMENT '1:default, 0:not default',
   `spicy_level` tinyint DEFAULT '0' COMMENT '0-5 level',
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `created_at` datetime,
   `sort_order` int DEFAULT NULL,
   `status` tinyint DEFAULT '1',
-  `updated_at` datetime(6) DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `dish_id` (`dish_id`),
   CONSTRAINT `dish_spec_ibfk_1` FOREIGN KEY (`dish_id`) REFERENCES `dish` (`dish_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -541,11 +541,11 @@ CREATE TABLE `dish_spec_option` (
   `option_type` varchar(50) DEFAULT NULL COMMENT 'size,extra,ingredient',
   `option_name` varchar(100) DEFAULT NULL,
   `extra_price` decimal(10,2) DEFAULT '0.00',
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `created_at` datetime,
   PRIMARY KEY (`id`),
   KEY `spec_id` (`spec_id`),
   CONSTRAINT `dish_spec_option_ibfk_1` FOREIGN KEY (`spec_id`) REFERENCES `dish_spec` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -567,11 +567,11 @@ CREATE TABLE `favorite` (
   `user_id` bigint unsigned NOT NULL,
   `target_type` varchar(20) DEFAULT NULL COMMENT 'dish,canteen',
   `target_id` bigint unsigned NOT NULL,
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `created_at` datetime,
   PRIMARY KEY (`id`),
   UNIQUE KEY `user_id` (`user_id`,`target_type`,`target_id`),
   CONSTRAINT `favorite_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -593,11 +593,11 @@ CREATE TABLE `footprint` (
   `user_id` bigint unsigned NOT NULL,
   `target_type` varchar(20) DEFAULT NULL COMMENT 'dish,canteen',
   `target_id` bigint unsigned NOT NULL,
-  `viewed_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `viewed_at` timestamp DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`),
   CONSTRAINT `footprint_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -621,11 +621,11 @@ CREATE TABLE `menu` (
   `start_time` time DEFAULT NULL,
   `end_time` time DEFAULT NULL,
   `is_active` tinyint DEFAULT '1' COMMENT '1:active, 0:inactive',
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `created_at` datetime,
   PRIMARY KEY (`menu_id`),
   KEY `canteen_id` (`canteen_id`),
   CONSTRAINT `menu_ibfk_1` FOREIGN KEY (`canteen_id`) REFERENCES `canteen` (`canteen_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -647,13 +647,13 @@ CREATE TABLE `menu_dish` (
   `dish_id` bigint unsigned NOT NULL,
   `menu_id` bigint unsigned NOT NULL,
   `sort_order` int DEFAULT '0',
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `created_at` datetime,
   PRIMARY KEY (`id`),
   UNIQUE KEY `dish_id` (`dish_id`,`menu_id`),
   KEY `menu_id` (`menu_id`),
   CONSTRAINT `menu_dish_ibfk_1` FOREIGN KEY (`dish_id`) REFERENCES `dish` (`dish_id`),
   CONSTRAINT `menu_dish_ibfk_2` FOREIGN KEY (`menu_id`) REFERENCES `menu` (`menu_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -680,13 +680,13 @@ CREATE TABLE `merchant_account` (
   `role` varchar(20) DEFAULT NULL COMMENT 'admin,staff',
   `status` tinyint DEFAULT '1',
   `last_login_at` datetime DEFAULT NULL,
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `created_at` datetime,
+  `updated_at` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`merchant_account_id`),
   UNIQUE KEY `username` (`username`),
   KEY `canteen_id` (`canteen_id`),
   CONSTRAINT `merchant_account_ibfk_1` FOREIGN KEY (`canteen_id`) REFERENCES `canteen` (`canteen_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -694,7 +694,7 @@ CREATE TABLE `merchant_account` (
 --
 
 /*!40000 ALTER TABLE `merchant_account` DISABLE KEYS */;
-INSERT INTO `merchant_account` VALUES (1,1,'merchant','$2a$10$gjxEnNg7MwWsEw8bFLmJB.CxHkbqe8vt29ACb8dtfJuN2jlZPMPUa','及木商家',NULL,'ADMIN',0,'2025-12-21 14:42:12','2025-12-19 00:30:52','2025-12-21 14:42:12'),(2,4,'apitestflat','$2a$10$HVWEpy5Nc0JlLpMnkupYwOW9ADveUBvPrblo7UTwazCmeR7IRPMWi','API Admin Flat','13900000001','ADMIN',1,NULL,'2025-12-19 12:31:43','2025-12-19 13:02:14');
+INSERT INTO `merchant_account` VALUES (1,1,'merchant','$2a$10$gjxEnNg7MwWsEw8bFLmJB.CxHkbqe8vt29ACb8dtfJuN2jlZPMPUa','鍙婃湪鍟嗗',NULL,'ADMIN',0,'2025-12-21 14:42:12','2025-12-19 00:30:52','2025-12-21 14:42:12'),(2,4,'apitestflat','$2a$10$HVWEpy5Nc0JlLpMnkupYwOW9ADveUBvPrblo7UTwazCmeR7IRPMWi','API Admin Flat','13900000001','ADMIN',1,NULL,'2025-12-19 12:31:43','2025-12-19 13:02:14');
 /*!40000 ALTER TABLE `merchant_account` ENABLE KEYS */;
 
 --
@@ -708,12 +708,12 @@ CREATE TABLE `merchant_operation_log` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `merchant_account_id` bigint unsigned NOT NULL,
   `operation` varchar(100) DEFAULT NULL,
-  `detail` json DEFAULT NULL,
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `detail` text DEFAULT NULL,
+  `created_at` datetime,
   PRIMARY KEY (`id`),
   KEY `merchant_account_id` (`merchant_account_id`),
   CONSTRAINT `merchant_operation_log_ibfk_1` FOREIGN KEY (`merchant_account_id`) REFERENCES `merchant_account` (`merchant_account_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -749,15 +749,15 @@ CREATE TABLE `order` (
   `pickup_window` varchar(50) DEFAULT NULL,
   `remark` text,
   `cancel_reason` text,
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `created_at` datetime,
+  `updated_at` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`order_id`),
   UNIQUE KEY `order_no` (`order_no`),
   KEY `user_id` (`user_id`),
   KEY `canteen_id` (`canteen_id`),
   CONSTRAINT `order_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`),
   CONSTRAINT `order_ibfk_2` FOREIGN KEY (`canteen_id`) REFERENCES `canteen` (`canteen_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=42 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=42 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -765,7 +765,7 @@ CREATE TABLE `order` (
 --
 
 /*!40000 ALTER TABLE `order` DISABLE KEYS */;
-INSERT INTO `order` VALUES (1,1,1,NULL,'2479219629d04920','COMPLETED','DINE_IN',NULL,NULL,18.00,0.00,0.00,18.00,'WECHAT','B012',NULL,NULL,NULL,'2025-12-19 00:36:33','2025-12-19 01:10:36'),(2,1,1,NULL,'0a2b1bda3054463f','COMPLETED','DINE_IN',NULL,NULL,15.00,0.00,0.00,15.00,'WECHAT','B013',NULL,NULL,NULL,'2025-12-19 00:36:33','2025-12-19 01:10:36'),(3,1,1,NULL,'335a8e9272e84dae','COMPLETED','DINE_IN',NULL,NULL,18.00,0.00,0.00,18.00,'WECHAT','B014',NULL,NULL,NULL,'2025-12-19 00:36:33','2025-12-19 01:10:37'),(5,1,1,NULL,'ORD-1766163636402-12D16CA9','COMPLETED','DINE_IN',NULL,NULL,25.00,NULL,NULL,NULL,NULL,'100',NULL,'',NULL,'2025-12-20 01:00:36','2025-12-21 14:42:31'),(6,1,1,NULL,'ORD-1766163748100-74943100','COMPLETED','DINE_IN',NULL,NULL,15.00,NULL,NULL,NULL,NULL,'100',NULL,'',NULL,'2025-12-20 01:02:28','2025-12-21 14:42:31'),(7,1,1,NULL,'ORD-1766163868086-1CAFF9C8','COMPLETED','DINE_IN',NULL,NULL,15.00,NULL,NULL,NULL,NULL,'100',NULL,'',NULL,'2025-12-20 01:04:28','2025-12-21 14:42:31'),(8,1,1,NULL,'ORD-1766164229575-63E4D304','COMPLETED','DINE_IN',NULL,NULL,15.00,NULL,NULL,NULL,NULL,'100',NULL,'',NULL,'2025-12-20 01:10:30','2025-12-21 14:42:31'),(9,1,1,NULL,'ORD-1766164594128-6F6CE88A','COMPLETED','DINE_IN',NULL,NULL,15.00,NULL,NULL,NULL,NULL,'100',NULL,'',NULL,'2025-12-20 01:16:34','2025-12-21 14:42:32'),(10,1,1,NULL,'ORD-1766164880078-D881DE4D','COMPLETED','DINE_IN',NULL,NULL,15.00,NULL,NULL,NULL,NULL,'100',NULL,'',NULL,'2025-12-20 01:21:20','2025-12-21 14:42:32'),(37,5,1,NULL,'ORD-1766296291732-35B2D165','COMPLETED','DINE_IN',NULL,NULL,25.00,NULL,NULL,NULL,NULL,'101',NULL,'',NULL,'2025-12-21 13:51:32','2025-12-21 14:42:32'),(38,5,1,NULL,'ORD-1766297212687-74D82027','COMPLETED','DINE_IN',NULL,NULL,25.00,NULL,NULL,NULL,NULL,'102',NULL,'',NULL,'2025-12-21 14:06:53','2025-12-21 14:42:32'),(39,5,1,NULL,'ORD-1766297939408-637D668D','COMPLETED','DINE_IN',NULL,NULL,15.00,NULL,NULL,NULL,NULL,'103',NULL,'',NULL,'2025-12-21 14:18:59','2025-12-21 14:29:43'),(40,5,1,NULL,'ORD-1766298476097-10A8C02C','COMPLETED','DINE_IN',NULL,NULL,15.00,NULL,NULL,NULL,NULL,'104',NULL,'',NULL,'2025-12-21 14:27:56','2025-12-21 14:29:41'),(41,5,1,NULL,'ORD-1766299101703-1089728C','COMPLETED','DINE_IN',NULL,NULL,32.00,NULL,NULL,NULL,NULL,'105',NULL,'香辣牛肉面',NULL,'2025-12-21 14:38:22','2025-12-21 14:38:42');
+INSERT INTO `order` VALUES (1,1,1,NULL,'2479219629d04920','COMPLETED','DINE_IN',NULL,NULL,18.00,0.00,0.00,18.00,'WECHAT','B012',NULL,NULL,NULL,'2025-12-19 00:36:33','2025-12-19 01:10:36'),(2,1,1,NULL,'0a2b1bda3054463f','COMPLETED','DINE_IN',NULL,NULL,15.00,0.00,0.00,15.00,'WECHAT','B013',NULL,NULL,NULL,'2025-12-19 00:36:33','2025-12-19 01:10:36'),(3,1,1,NULL,'335a8e9272e84dae','COMPLETED','DINE_IN',NULL,NULL,18.00,0.00,0.00,18.00,'WECHAT','B014',NULL,NULL,NULL,'2025-12-19 00:36:33','2025-12-19 01:10:37'),(5,1,1,NULL,'ORD-1766163636402-12D16CA9','COMPLETED','DINE_IN',NULL,NULL,25.00,NULL,NULL,NULL,NULL,'100',NULL,'',NULL,'2025-12-20 01:00:36','2025-12-21 14:42:31'),(6,1,1,NULL,'ORD-1766163748100-74943100','COMPLETED','DINE_IN',NULL,NULL,15.00,NULL,NULL,NULL,NULL,'100',NULL,'',NULL,'2025-12-20 01:02:28','2025-12-21 14:42:31'),(7,1,1,NULL,'ORD-1766163868086-1CAFF9C8','COMPLETED','DINE_IN',NULL,NULL,15.00,NULL,NULL,NULL,NULL,'100',NULL,'',NULL,'2025-12-20 01:04:28','2025-12-21 14:42:31'),(8,1,1,NULL,'ORD-1766164229575-63E4D304','COMPLETED','DINE_IN',NULL,NULL,15.00,NULL,NULL,NULL,NULL,'100',NULL,'',NULL,'2025-12-20 01:10:30','2025-12-21 14:42:31'),(9,1,1,NULL,'ORD-1766164594128-6F6CE88A','COMPLETED','DINE_IN',NULL,NULL,15.00,NULL,NULL,NULL,NULL,'100',NULL,'',NULL,'2025-12-20 01:16:34','2025-12-21 14:42:32'),(10,1,1,NULL,'ORD-1766164880078-D881DE4D','COMPLETED','DINE_IN',NULL,NULL,15.00,NULL,NULL,NULL,NULL,'100',NULL,'',NULL,'2025-12-20 01:21:20','2025-12-21 14:42:32'),(37,5,1,NULL,'ORD-1766296291732-35B2D165','COMPLETED','DINE_IN',NULL,NULL,25.00,NULL,NULL,NULL,NULL,'101',NULL,'',NULL,'2025-12-21 13:51:32','2025-12-21 14:42:32'),(38,5,1,NULL,'ORD-1766297212687-74D82027','COMPLETED','DINE_IN',NULL,NULL,25.00,NULL,NULL,NULL,NULL,'102',NULL,'',NULL,'2025-12-21 14:06:53','2025-12-21 14:42:32'),(39,5,1,NULL,'ORD-1766297939408-637D668D','COMPLETED','DINE_IN',NULL,NULL,15.00,NULL,NULL,NULL,NULL,'103',NULL,'',NULL,'2025-12-21 14:18:59','2025-12-21 14:29:43'),(40,5,1,NULL,'ORD-1766298476097-10A8C02C','COMPLETED','DINE_IN',NULL,NULL,15.00,NULL,NULL,NULL,NULL,'104',NULL,'',NULL,'2025-12-21 14:27:56','2025-12-21 14:29:41'),(41,5,1,NULL,'ORD-1766299101703-1089728C','COMPLETED','DINE_IN',NULL,NULL,32.00,NULL,NULL,NULL,NULL,'105',NULL,'',NULL,'2025-12-21 14:38:22','2025-12-21 14:38:42');
 /*!40000 ALTER TABLE `order` ENABLE KEYS */;
 
 --
@@ -783,14 +783,14 @@ CREATE TABLE `order_item` (
   `spec_name` varchar(100) DEFAULT NULL,
   `unit_price` decimal(10,2) DEFAULT NULL,
   `quantity` int DEFAULT '1',
-  `extra_options` json DEFAULT NULL,
+  `extra_options` text DEFAULT NULL,
   `total_price` decimal(10,2) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `order_id` (`order_id`),
   KEY `dish_id` (`dish_id`),
   CONSTRAINT `order_item_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `order` (`order_id`),
   CONSTRAINT `order_item_ibfk_2` FOREIGN KEY (`dish_id`) REFERENCES `dish` (`dish_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -798,7 +798,7 @@ CREATE TABLE `order_item` (
 --
 
 /*!40000 ALTER TABLE `order_item` DISABLE KEYS */;
-INSERT INTO `order_item` VALUES (1,1,1,'红烧肉盖饭',NULL,18.00,1,NULL,18.00),(2,2,2,'宫保鸡丁盖饭',NULL,15.00,1,NULL,15.00),(3,3,1,'红烧肉盖饭',NULL,18.00,1,NULL,18.00),(4,5,2,'宫保鸡丁盖饭',NULL,NULL,1,NULL,NULL),(5,5,23,'方便面',NULL,NULL,1,NULL,NULL),(6,6,2,'宫保鸡丁盖饭',NULL,NULL,1,NULL,NULL),(7,7,2,'宫保鸡丁盖饭',NULL,NULL,1,NULL,NULL),(8,8,2,'宫保鸡丁盖饭',NULL,NULL,1,NULL,NULL),(9,9,2,'宫保鸡丁盖饭',NULL,NULL,1,NULL,NULL),(10,10,2,'宫保鸡丁盖饭',NULL,NULL,1,NULL,NULL),(11,37,2,NULL,NULL,15.00,1,NULL,15.00),(12,37,23,NULL,NULL,10.00,1,NULL,10.00),(13,38,2,NULL,NULL,15.00,1,NULL,15.00),(14,38,23,NULL,NULL,10.00,1,NULL,10.00),(15,39,2,NULL,NULL,15.00,1,NULL,15.00),(16,40,2,'宫保鸡丁盖饭',NULL,15.00,1,NULL,15.00),(17,41,23,'方便面',NULL,10.00,4,NULL,40.00);
+INSERT INTO `order_item` VALUES (1,1,1,'',NULL,18.00,1,NULL,18.00),(2,2,2,'瀹繚楦′竵鐩栭キ',NULL,15.00,1,NULL,15.00),(3,3,1,'',NULL,18.00,1,NULL,18.00),(4,5,2,'瀹繚楦′竵鐩栭キ',NULL,NULL,1,NULL,NULL),(5,5,23,'',NULL,NULL,1,NULL,NULL),(6,6,2,'瀹繚楦′竵鐩栭キ',NULL,NULL,1,NULL,NULL),(7,7,2,'瀹繚楦′竵鐩栭キ',NULL,NULL,1,NULL,NULL),(8,8,2,'瀹繚楦′竵鐩栭キ',NULL,NULL,1,NULL,NULL),(9,9,2,'瀹繚楦′竵鐩栭キ',NULL,NULL,1,NULL,NULL),(10,10,2,'瀹繚楦′竵鐩栭キ',NULL,NULL,1,NULL,NULL),(11,37,2,NULL,NULL,15.00,1,NULL,15.00),(12,37,23,NULL,NULL,10.00,1,NULL,10.00),(13,38,2,NULL,NULL,15.00,1,NULL,15.00),(14,38,23,NULL,NULL,10.00,1,NULL,10.00),(15,39,2,NULL,NULL,15.00,1,NULL,15.00),(16,40,2,'瀹繚楦′竵鐩栭キ',NULL,15.00,1,NULL,15.00),(17,41,23,'',NULL,10.00,4,NULL,40.00);
 /*!40000 ALTER TABLE `order_item` ENABLE KEYS */;
 
 --
@@ -816,11 +816,11 @@ CREATE TABLE `order_status_log` (
   `operator_type` varchar(20) DEFAULT NULL COMMENT 'user,merchant,admin,system',
   `operator_id` bigint unsigned DEFAULT NULL,
   `remark` text,
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `created_at` datetime,
   PRIMARY KEY (`id`),
   KEY `order_id` (`order_id`),
   CONSTRAINT `order_status_log_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `order` (`order_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=62 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=62 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -846,12 +846,12 @@ CREATE TABLE `payment_record` (
   `amount` decimal(10,2) DEFAULT NULL,
   `status` varchar(20) DEFAULT NULL COMMENT 'pending,success,failed',
   `paid_at` datetime DEFAULT NULL,
-  `raw_response` json DEFAULT NULL,
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `raw_response` text DEFAULT NULL,
+  `created_at` datetime,
   PRIMARY KEY (`id`),
   KEY `order_id` (`order_id`),
   CONSTRAINT `payment_record_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `order` (`order_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -873,10 +873,10 @@ CREATE TABLE `system_monitor` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `service_name` varchar(100) DEFAULT NULL,
   `status` varchar(20) DEFAULT NULL COMMENT 'up,down,warning',
-  `metrics` json DEFAULT NULL,
-  `checked_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `metrics` text DEFAULT NULL,
+  `checked_at` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -899,10 +899,10 @@ CREATE TABLE `system_param` (
   `param_value` text,
   `description` varchar(500) DEFAULT NULL,
   `updated_by` bigint unsigned DEFAULT NULL,
-  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `updated_at` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `param_key` (`param_key`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -928,13 +928,13 @@ CREATE TABLE `transaction_record` (
   `payment_channel` varchar(20) DEFAULT NULL,
   `trade_no` varchar(100) DEFAULT NULL,
   `trade_at` datetime DEFAULT NULL,
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `created_at` datetime,
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`),
   KEY `order_id` (`order_id`),
   CONSTRAINT `transaction_record_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`),
   CONSTRAINT `transaction_record_ibfk_2` FOREIGN KEY (`order_id`) REFERENCES `order` (`order_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -960,10 +960,10 @@ CREATE TABLE `user` (
   `mobile` varchar(20) DEFAULT NULL,
   `status` tinyint DEFAULT '1',
   `last_login_at` datetime DEFAULT NULL,
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `created_at` datetime,
+  `updated_at` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`user_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -971,7 +971,7 @@ CREATE TABLE `user` (
 --
 
 /*!40000 ALTER TABLE `user` DISABLE KEYS */;
-INSERT INTO `user` VALUES (1,'test-openid-123',NULL,'微信用户','https://thirdwx.qlogo.cn/mmopen/vi_32/POgEwh4mIHO4nibH0KlMECNjjGxQUq24ZEaGT4poC6icRiccVGKSyXwibcPq4BWmiaIGuG1icwxaQX6grC9VemZoJ8rg/132',NULL,1,'2025-12-20 01:54:33','2025-12-19 00:36:33','2025-12-20 01:54:33'),(2,NULL,NULL,NULL,NULL,NULL,1,'2025-12-20 12:19:04','2025-12-20 12:05:49','2025-12-20 12:19:04'),(3,'test-openid-634',NULL,NULL,NULL,NULL,1,'2025-12-20 12:26:08','2025-12-20 12:26:08','2025-12-20 12:39:17'),(4,'oa2tj190AvQOCZ_Nb9TjbmALiquc',NULL,NULL,NULL,NULL,1,'2025-12-21 12:37:05','2025-12-20 12:27:26','2025-12-21 12:37:05'),(5,'oOchk14S-8402vF886otqKG5hTgI',NULL,NULL,NULL,NULL,1,'2025-12-21 14:06:43','2025-12-21 13:12:40','2025-12-21 14:06:43');
+INSERT INTO `user` VALUES (1,'test-openid-123',NULL,'寰俊鐢ㄦ埛','https://thirdwx.qlogo.cn/mmopen/vi_32/POgEwh4mIHO4nibH0KlMECNjjGxQUq24ZEaGT4poC6icRiccVGKSyXwibcPq4BWmiaIGuG1icwxaQX6grC9VemZoJ8rg/132',NULL,1,'2025-12-20 01:54:33','2025-12-19 00:36:33','2025-12-20 01:54:33'),(2,NULL,NULL,NULL,NULL,NULL,1,'2025-12-20 12:19:04','2025-12-20 12:05:49','2025-12-20 12:19:04'),(3,'test-openid-634',NULL,NULL,NULL,NULL,1,'2025-12-20 12:26:08','2025-12-20 12:26:08','2025-12-20 12:39:17'),(4,'oa2tj190AvQOCZ_Nb9TjbmALiquc',NULL,NULL,NULL,NULL,1,'2025-12-21 12:37:05','2025-12-20 12:27:26','2025-12-21 12:37:05'),(5,'oOchk14S-8402vF886otqKG5hTgI',NULL,NULL,NULL,NULL,1,'2025-12-21 14:06:43','2025-12-21 13:12:40','2025-12-21 14:06:43');
 /*!40000 ALTER TABLE `user` ENABLE KEYS */;
 
 --
@@ -991,12 +991,12 @@ CREATE TABLE `user_address` (
   `detail_address` varchar(500) DEFAULT NULL,
   `is_default` tinyint DEFAULT '0' COMMENT '1:default, 0:not default',
   `is_deleted` tinyint DEFAULT '0' COMMENT '0:normal, 1:deleted',
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `created_at` datetime,
+  `updated_at` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`),
   CONSTRAINT `user_address_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1020,11 +1020,11 @@ CREATE TABLE `user_asset` (
   `points` int DEFAULT '0',
   `total_recharge` decimal(10,2) DEFAULT '0.00',
   `total_spend` decimal(10,2) DEFAULT '0.00',
-  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `updated_at` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `user_id` (`user_id`),
   CONSTRAINT `user_asset_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1047,13 +1047,13 @@ CREATE TABLE `user_coupon` (
   `coupon_template_id` bigint unsigned NOT NULL,
   `status` varchar(20) DEFAULT NULL COMMENT 'unused,used,expired',
   `user_order_id` bigint unsigned DEFAULT NULL,
-  `claimed_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `claimed_at` timestamp DEFAULT CURRENT_TIMESTAMP,
   `used_at` datetime DEFAULT NULL,
   `expires_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `user_id` (`user_id`,`coupon_template_id`),
   CONSTRAINT `user_coupon_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1077,12 +1077,12 @@ CREATE TABLE `user_notification` (
   `title` varchar(200) DEFAULT NULL,
   `content` text,
   `is_read` tinyint DEFAULT '0' COMMENT '0:unread, 1:read',
-  `extra` json DEFAULT NULL,
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `extra` text DEFAULT NULL,
+  `created_at` datetime,
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`),
   CONSTRAINT `user_notification_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1107,11 +1107,11 @@ CREATE TABLE `user_profile` (
   `campus_card_status` varchar(20) DEFAULT NULL COMMENT 'active,inactive,lost',
   `birthday` date DEFAULT NULL,
   `remark` text,
-  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `updated_at` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `user_id` (`user_id`),
   CONSTRAINT `user_profile_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1135,3 +1135,12 @@ CREATE TABLE `user_profile` (
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 -- Dump completed on 2025-12-21 22:36:22
+
+
+
+
+
+
+
+
+

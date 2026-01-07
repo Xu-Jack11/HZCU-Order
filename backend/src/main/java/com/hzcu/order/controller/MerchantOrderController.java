@@ -1,5 +1,18 @@
 package com.hzcu.order.controller;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.hzcu.order.common.ApiResponse;
 import com.hzcu.order.dto.EntityMapper;
 import com.hzcu.order.dto.OrderDTO;
@@ -7,16 +20,10 @@ import com.hzcu.order.entity.Order;
 import com.hzcu.order.security.UserPrincipal;
 import com.hzcu.order.service.CanteenService;
 import com.hzcu.order.service.OrderService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/merchant/orders")
@@ -70,6 +77,24 @@ public class MerchantOrderController {
                     orderService.updateOrderStatus(order, "PREPARING", "MERCHANT", currentUser.getId(),
                             "Merchant accepted order");
                     return ApiResponse.success("Order accepted", "Success");
+                })
+                .orElse(ApiResponse.<String>error(404, "Order not found"));
+    }
+
+    @PatchMapping("/{id}/reject")
+    @Operation(summary = "Merchant rejects order")
+    public ApiResponse<String> rejectOrder(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserPrincipal currentUser) {
+
+        return orderService.getOrderById(id)
+                .map(order -> {
+                    if (!"PAID".equals(order.getStatus()) && !"PENDING_PAYMENT".equals(order.getStatus())) {
+                        return ApiResponse.<String>error(400, "Cannot reject order in status: " + order.getStatus());
+                    }
+                    orderService.updateOrderStatus(order, "CANCELLED", "MERCHANT", currentUser.getId(),
+                            "Merchant rejected order");
+                    return ApiResponse.success("Order rejected", "Success");
                 })
                 .orElse(ApiResponse.<String>error(404, "Order not found"));
     }

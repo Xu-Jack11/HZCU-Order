@@ -49,6 +49,7 @@ public class AuthService {
         userInfo.put("nickname", user.getNickname());
         userInfo.put("avatarUrl", user.getAvatarUrl());
         userInfo.put("mobile", user.getMobile());
+        userInfo.put("balance", user.getBalance());
 
         return LoginResponse.builder()
                 .token(token)
@@ -90,6 +91,7 @@ public class AuthService {
         userInfo.put("nickname", user.getNickname());
         userInfo.put("avatarUrl", user.getAvatarUrl());
         userInfo.put("mobile", user.getMobile());
+        userInfo.put("balance", user.getBalance());
 
         return LoginResponse.builder()
                 .token(token)

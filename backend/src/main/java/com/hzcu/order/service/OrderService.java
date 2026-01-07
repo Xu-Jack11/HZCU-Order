@@ -3,7 +3,6 @@ package com.hzcu.order.service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -81,6 +80,14 @@ public class OrderService {
         return orderRepository.findByUserOrderByCreatedAtDesc(user);
     }
 
+    public List<Order> getOrdersByUserAndStatus(User user, String status) {
+        return orderRepository.findByUserAndStatusOrderByCreatedAtDesc(user, status);
+    }
+
+    public List<Order> getOrdersByUserAndStatuses(User user, List<String> statuses) {
+        return orderRepository.findByUserAndStatusInOrderByCreatedAtDesc(user, statuses);
+    }
+
     public List<Order> getOrdersByCanteen(Canteen canteen) {
         return orderRepository.findByCanteenOrderByCreatedAtDesc(canteen);
     }
@@ -112,22 +119,10 @@ public class OrderService {
     }
 
     private String generatePickupCode(Canteen canteen) {
-        LocalDateTime startOfDay = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0).withNano(0);
-        List<String> codes = orderRepository.findPickupCodesByCanteenSince(canteen, startOfDay);
-
-        int maxCode = 100;
-        for (String code : codes) {
-            try {
-                if (code.matches("\\d+")) {
-                    int val = Integer.parseInt(code);
-                    if (val > maxCode) {
-                        maxCode = val;
-                    }
-                }
-            } catch (NumberFormatException ignored) {
-            }
+        Long maxCode = orderRepository.findMaxPickupCodeByCanteen(canteen);
+        if (maxCode == null) {
+            return "1001";
         }
-
         return String.valueOf(maxCode + 1);
     }
 
@@ -145,6 +140,6 @@ public class OrderService {
     }
 
     private String generateOrderNo() {
-        return "ORD-" + System.currentTimeMillis() + "-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        return "ORD" + LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS"));
     }
 }

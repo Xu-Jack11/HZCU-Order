@@ -130,6 +130,7 @@ export default function DashboardPage() {
                             onStatusChange={(id, status) => {
                                 let action = '';
                                 if (status === 'PROCESSING') action = 'accept';
+                                else if (status === 'CANCELLED') action = 'reject';
                                 else if (status === 'READY') action = 'finish';
                                 else if (status === 'COMPLETED') action = 'complete';
 

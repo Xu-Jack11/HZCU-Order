@@ -1,4 +1,4 @@
-// checkout.ts
+﻿// checkout.ts
 // 结算页面
 import { clearCartSnapshot } from '../../utils/cart';
 import { CouponItem } from '../../utils/data';
@@ -27,7 +27,8 @@ Page({
     packingFee: 0,
     couponDiscount: 0,
     finalPrice: 0,
-    selectedCoupon: null as CouponItem | null
+    selectedCoupon: null as CouponItem | null,
+    paymentMethod: 'WECHAT' as 'WECHAT' | 'BALANCE'
   },
 
   onLoad() {
@@ -36,6 +37,18 @@ Page({
 
   onShow() {
     this.syncSelectedCoupon();
+  },
+
+  // 选择支付方式
+  choosePaymentMethod() {
+    const itemList = ['微信支付', '余额支付'];
+    wx.showActionSheet({
+      itemList,
+      success: (res) => {
+        const paymentMethod = res.tapIndex === 0 ? 'WECHAT' : 'BALANCE';
+        this.setData({ paymentMethod });
+      }
+    });
   },
 
   // 计算打包费
@@ -180,6 +193,7 @@ Page({
         cartList: this.data.cartList,
         totalPrice: this.data.finalPrice,
         diningMode: this.data.diningMode === 'dine-in' ? 'DINE_IN' : 'TAKEAWAY',
+        paymentMethod: this.data.paymentMethod,
         tableNo: this.data.tableNo,
         pickupTime: this.data.pickupTime,
         remark: this.data.remark
@@ -189,9 +203,9 @@ Page({
 
       // 2. 发起支付
       wx.setNavigationBarTitle({ title: '正在支付...' });
-      const payParams = await payOrder(orderId);
+      const payResult = await payOrder(orderId, this.data.paymentMethod);
 
-      // 3. 模拟微信支付成功 (在真实环境下调用 wx.requestPayment(payParams))
+      // 3. 模拟微信支付成功 (在真实环境下对于 WECHAT 需调用 wx.requestPayment(payParams))
       // 目前后端在 createPayment 时会自动 processPayment 并更新状态
 
       wx.showToast({

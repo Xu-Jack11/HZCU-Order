@@ -1,4 +1,4 @@
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
+const BASE_URL = '/api/v1';
 
 // Helper function to clear auth data and redirect to login
 function handleAuthError() {

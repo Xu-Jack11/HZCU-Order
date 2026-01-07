@@ -1,7 +1,7 @@
 // mine.ts
 // 个人中心页
 import { clearCouponContext } from '../../utils/coupon';
-import { loginWithCode, logout } from '../../utils/api';
+import { loginWithCode, logout, getUserProfile, rechargeBalance } from '../../utils/api';
 
 Page({
   data: {
@@ -9,7 +9,8 @@ Page({
     userInfo: {
       avatarUrl: '',
       nickName: '',
-      mobile: ''
+      mobile: '',
+      balance: '0.00'
     },
     orderCount: {
       pending: 0,
@@ -27,6 +28,7 @@ Page({
     this.checkLoginStatus();
     if (this.data.isLogin) {
       this.loadOrderCount();
+      this.refreshUserProfile();
     }
   },
 
@@ -42,6 +44,57 @@ Page({
     } else {
       this.setData({ isLogin: false });
     }
+  },
+
+  // 刷新用户信息（获取最新余额等）
+  async refreshUserProfile() {
+    if (!this.data.isLogin) return;
+    try {
+      const profile = await getUserProfile();
+      if (profile) {
+        const userInfo = {
+          ...this.data.userInfo,
+          nickName: profile.nickname,
+          avatarUrl: profile.avatarUrl,
+          mobile: profile.mobile,
+          balance: profile.balance ? profile.balance.toFixed(2) : '0.00'
+        };
+        this.setData({ userInfo });
+        wx.setStorageSync('userInfo', userInfo);
+      }
+    } catch (err) {
+      console.error('Failed to refresh user profile:', err);
+    }
+  },
+
+  // 充值功能
+  goRecharge() {
+    wx.showModal({
+      title: '余额充值',
+      editable: true,
+      placeholderText: '请输入充值金额',
+      success: async (res) => {
+        if (res.confirm && res.content) {
+          const amount = parseFloat(res.content);
+          if (isNaN(amount) || amount <= 0) {
+            wx.showToast({ title: '请输入有效金额', icon: 'none' });
+            return;
+          }
+
+          try {
+            wx.showLoading({ title: '充值中...' });
+            await rechargeBalance(amount);
+            wx.hideLoading();
+            wx.showToast({ title: '充值成功', icon: 'success' });
+            this.refreshUserProfile();
+          } catch (err) {
+            wx.hideLoading();
+            wx.showToast({ title: '充值失败', icon: 'none' });
+            console.error('Recharge failed:', err);
+          }
+        }
+      }
+    });
   },
 
   // 加载订单数量
@@ -113,11 +166,19 @@ Page({
             }
 
             wx.setStorageSync('token', data.token);
-            wx.setStorageSync('userInfo', data.user);
+            
+            // 统一字段名并格式化余额
+            const userInfo = {
+              ...data.user,
+              nickName: data.user.nickname, // 后端返回的是 nickname
+              balance: data.user.balance ? data.user.balance.toFixed(2) : '0.00'
+            };
+            
+            wx.setStorageSync('userInfo', userInfo);
 
             this.setData({
               isLogin: true,
-              userInfo: data.user
+              userInfo: userInfo
             });
             wx.hideLoading();
           } catch (err) {
@@ -149,7 +210,8 @@ Page({
             userInfo: {
               avatarUrl: '',
               nickName: '',
-              mobile: ''
+              mobile: '',
+              balance: '0.00'
             }
           });
           wx.showToast({ title: '已退出' });
