@@ -1,4 +1,4 @@
-<!--order.wxml-->
+﻿<!--order.wxml-->
 <view class="container">
   <!-- 订单状态筛选 -->
   <view class="order-tabs">
@@ -27,14 +27,14 @@
             <text class="goods-name">{{goods.name}}</text>
             <text class="goods-count">x{{goods.count}}</text>
           </view>
-          <text class="goods-price">¥{{goods.price}}</text>
+          <text class="goods-price">￥{{goods.price}}</text>
         </view>
       </view>
 
       <!-- 订单金额 -->
       <view class="order-total">
         <text>共{{item.totalCount}}件商品</text>
-        <text class="total-price">实付：<text class="price">¥{{item.totalPrice}}</text></text>
+        <text class="total-price">实付：<text class="price">￥{{item.totalPrice}}</text></text>
       </view>
 
       <!-- 订单操作 -->

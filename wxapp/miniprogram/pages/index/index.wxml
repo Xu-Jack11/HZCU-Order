@@ -1,4 +1,4 @@
-<!--index.wxml-->
+﻿<!--index.wxml-->
 <view class="container">
   <!-- 顶部地址栏 -->
   <view class="header">
@@ -9,11 +9,11 @@
     </view>
   </view>
 
-  <!-- 搜索框 -->
+  <!-- 搜索栏 -->
   <view class="search-bar">
     <view class="search-input-wrap">
       <image class="search-icon" src="/images/search.png" mode="aspectFit"></image>
-      <input class="search-input" placeholder="今天吃点啥" placeholder-class="placeholder" bindinput="onSearchInput" value="{{searchKeyword}}" />
+      <input class="search-input" placeholder="今天吃点啥？" placeholder-class="placeholder" bindinput="onSearchInput" value="{{searchKeyword}}" />
     </view>
     <view class="search-btn" bindtap="onSearch">搜索</view>
   </view>
@@ -52,7 +52,7 @@
           </view>
         </view>
         <view class="shop-delivery">
-          <text wx:if="{{item.minPrice}}">最低消费¥{{item.minPrice}}</text>
+          <text wx:if="{{item.minPrice}}">最低消费￥{{item.minPrice}}</text>
         </view>
         <view class="shop-tags">
           <text class="tag" wx:for="{{item.tags}}" wx:key="*this" wx:for-item="tag">{{tag}}</text>

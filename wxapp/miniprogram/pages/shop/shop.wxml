@@ -1,4 +1,4 @@
-<!--shop.wxml-->
+﻿<!--shop.wxml-->
 <view class="container">
   <!-- 商家头部信息 -->
   <view class="shop-header">
@@ -33,9 +33,9 @@
   <view class="main-content" wx:if="{{currentTab === 'menu'}}">
     <!-- 左侧分类 -->
     <scroll-view class="category-sidebar" scroll-y>
-      <view 
+      <view
         class="category-item {{activeCategory === index ? 'active' : ''}}" 
-        wx:for="{{categories}}" 
+        wx:for="{{categories}}"
         wx:key="id"
         bindtap="selectCategory"
         data-index="{{index}}"
@@ -62,9 +62,9 @@
             </view>
             <view class="goods-price-row">
               <view class="goods-price">
-                <text class="price-symbol">¥</text>
+                <text class="price-symbol">￥</text>
                 <text class="price-value">{{goods.price}}</text>
-                <text class="price-original" wx:if="{{goods.originalPrice}}">¥{{goods.originalPrice}}</text>
+                <text class="price-original" wx:if="{{goods.originalPrice}}">￥{{goods.originalPrice}}</text>
               </view>
               <view class="goods-actions">
                 <view class="action-btn minus" wx:if="{{goods.count > 0}}" catchtap="decreaseGoods" data-id="{{goods.id}}">
@@ -92,7 +92,7 @@
           <text class="comment-time">{{item.time}}</text>
         </view>
         <view class="comment-rating">
-          <text class="star" wx:for="{{5}}" wx:key="*this">{{index < item.rating ? '★' : '☆'}}</text>
+          <text class="star" wx:for="{{5}}" wx:key="*this">{{index < item.rating ? '' : ''}}</text>
         </view>
         <view class="comment-text">{{item.content}}</view>
       </view>
@@ -127,7 +127,7 @@
         <text class="cart-badge" wx:if="{{totalCount > 0}}">{{totalCount}}</text>
       </view>
       <view class="cart-price">
-        <text class="total-price">¥{{totalPrice}}</text>
+        <text class="total-price">￥{{totalPrice}}</text>
       </view>
     </view>
     <view class="cart-right {{canCheckout ? 'active' : ''}}" bindtap="goCheckout">
@@ -146,7 +146,7 @@
       <view class="cart-detail-item" wx:for="{{cartList}}" wx:key="id">
         <text class="cart-item-name">{{item.name}}</text>
         <view class="cart-item-right">
-          <text class="cart-item-price">¥{{item.price}}</text>
+          <text class="cart-item-price">￥{{item.price}}</text>
           <view class="goods-actions">
             <view class="action-btn minus" catchtap="decreaseGoods" data-id="{{item.id}}">
               <text>-</text>

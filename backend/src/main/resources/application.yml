@@ -42,9 +42,9 @@ springdoc:
 
 wechat:
   # 微信小程序AppID
-  appid: ${WECHAT_APPID:wx1e39a676fdf7c829}
+  appid: ${WECHAT_APPID:wxfdbac2e56f2ee5a9}
   # 微信小程序AppSecret
-  secret: ${WECHAT_SECRET:abcd1234efgh5678ijkl9012mnop3456}
+  secret: ${WECHAT_SECRET:6fbc12cb291906e59e902677203f3cbf}
   mch:
     mch-id: ${WECHAT_MCH_ID:1234567890}
     api-v3-key: ${WECHAT_API_V3_KEY:key1234567890abcdef}

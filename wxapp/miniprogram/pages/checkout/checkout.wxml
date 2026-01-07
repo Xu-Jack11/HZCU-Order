@@ -1,4 +1,4 @@
-<!--checkout.wxml-->
+﻿<!--checkout.wxml-->
 <view class="container">
   <!-- 就餐信息 -->
   <view class="dining-section">
@@ -25,7 +25,7 @@
         <text class="goods-name">{{item.name}}</text>
         <text class="goods-count">x{{item.count}}</text>
       </view>
-      <text class="goods-price">¥{{item.price}}</text>
+      <text class="goods-price">￥{{item.price}}</text>
     </view>
   </view>
 
@@ -47,8 +47,15 @@
       <view class="value" bindtap="chooseCoupon">
         <text>{{selectedCoupon ? selectedCoupon.title : '请选择优惠券'}}</text>
         <text class="coupon-brief" wx:if="{{selectedCoupon}}">
-          {{couponDiscount > 0 ? '-¥' + couponDiscount : '未满足门槛'}}
+          {{couponDiscount > 0 ? '-￥' + couponDiscount : '未满足门槛'}}
         </text>
+        <image class="arrow-right" src="/images/arrow-right.png" mode="aspectFit"></image>
+      </view>
+    </view>
+    <view class="pickup-item">
+      <text class="label">支付方式</text>
+      <view class="value" bindtap="choosePaymentMethod">
+        <text>{{paymentMethod === 'BALANCE' ? '余额支付' : '微信支付'}}</text>
         <image class="arrow-right" src="/images/arrow-right.png" mode="aspectFit"></image>
       </view>
     </view>
@@ -58,23 +65,23 @@
   <view class="price-section">
     <view class="price-item">
       <text>商品金额</text>
-      <text>¥{{totalPrice}}</text>
+      <text>￥{{totalPrice}}</text>
     </view>
     <view class="price-item" wx:if="{{packingFee > 0}}">
       <text>打包费</text>
-      <text>¥{{packingFee}}</text>
+      <text>￥{{packingFee}}</text>
     </view>
     <view class="price-item" wx:if="{{couponDiscount > 0}}">
       <text>优惠券</text>
-      <text class="discount">-¥{{couponDiscount}}</text>
+      <text class="discount">-￥{{couponDiscount}}</text>
     </view>
   </view>
 
-  <!-- 底部支付栏 -->
+  <!-- 底部支付条 -->
   <view class="pay-bar">
     <view class="pay-price">
       <text class="label">合计：</text>
-      <text class="price">¥{{finalPrice}}</text>
+      <text class="price">￥{{finalPrice}}</text>
     </view>
     <view class="pay-btn" bindtap="submitOrder">提交订单</view>
   </view>

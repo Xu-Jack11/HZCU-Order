@@ -1,15 +1,17 @@
 package com.hzcu.order.service;
 
-import com.hzcu.order.entity.Order;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
 import java.util.HashMap;
 import java.util.Map;
 
-@Slf4j
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
+import com.hzcu.order.entity.Order;
+
 @Service
 public class WechatPayService {
+    private static final Logger log = LoggerFactory.getLogger(WechatPayService.class);
 
     public Map<String, String> createUnifiedOrder(Order order) {
         log.info("Creating WeChat unified order for Order: {}", order.getOrderNo());

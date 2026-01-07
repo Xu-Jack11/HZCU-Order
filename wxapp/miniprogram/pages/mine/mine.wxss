@@ -60,6 +60,28 @@ page {
 .user-phone {
   font-size: 28rpx;
   color: var(--text-sub, #666);
+  margin-bottom: 8rpx;
+}
+
+.user-balance {
+  display: flex;
+  align-items: center;
+  font-size: 26rpx;
+  color: #666;
+}
+
+.balance-value {
+  color: #ff9500;
+  font-weight: bold;
+  margin-right: 16rpx;
+}
+
+.recharge-btn {
+  font-size: 22rpx;
+  color: #07c160;
+  border: 1rpx solid #07c160;
+  padding: 2rpx 12rpx;
+  border-radius: 20rpx;
 }
 
 .login-btn-new {

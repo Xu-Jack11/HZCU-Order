@@ -1,4 +1,4 @@
-const BASE_URL = 'http://localhost:8080/api/v1';
+const BASE_URL = 'https://ni1184ys72309.vicp.fun/api/v1';
 const DEFAULT_TIMEOUT = 10000;
 
 interface RequestOptions extends WechatMiniprogram.RequestOption {
