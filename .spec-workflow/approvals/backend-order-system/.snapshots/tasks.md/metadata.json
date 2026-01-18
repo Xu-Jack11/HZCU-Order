@@ -1,0 +1,14 @@
+{
+  "filePath": ".spec-workflow/specs/backend-order-system/tasks.md",
+  "currentVersion": 1,
+  "snapshots": [
+    {
+      "version": 1,
+      "filename": "snapshot-001.json",
+      "timestamp": "2025-12-18T10:01:52.316Z",
+      "trigger": "initial",
+      "approvalId": "approval_1766052112309_lt39yk2be",
+      "approvalTitle": "点餐系统后端开发任务分解 (25个任务)"
+    }
+  ]
+}

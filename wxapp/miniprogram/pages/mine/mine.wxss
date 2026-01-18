@@ -60,6 +60,61 @@ page {
 .user-phone {
   font-size: 28rpx;
   color: var(--text-sub, #666);
+  margin-bottom: 8rpx;
+}
+
+.user-balance {
+  display: flex;
+  align-items: center;
+  font-size: 26rpx;
+  color: #666;
+}
+
+.balance-value {
+  color: #ff9500;
+  font-weight: bold;
+  margin-right: 16rpx;
+}
+
+.recharge-btn {
+  font-size: 22rpx;
+  color: #07c160;
+  border: 1rpx solid #07c160;
+  padding: 2rpx 12rpx;
+  border-radius: 20rpx;
+}
+
+.login-btn-new {
+  font-size: 36rpx;
+  color: var(--text-main, #333);
+  font-weight: bold;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  line-height: 1.5;
+  text-align: left;
+  width: auto !important;
+}
+
+.login-btn-new::after {
+  border: none;
+}
+
+.logout-item {
+  margin-top: 20rpx;
+}
+
+.bind-phone-btn {
+  font-size: 24rpx;
+  color: #fff;
+  background-color: #07c160;
+  border-radius: 8rpx;
+  padding: 8rpx 16rpx;
+  margin: 0;
+  line-height: 1.5;
+  width: auto !important;
+  font-weight: normal;
 }
 
 .setting-icon {

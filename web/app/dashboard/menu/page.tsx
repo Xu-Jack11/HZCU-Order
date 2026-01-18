@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Plus, Edit2, Trash2, X, Search, Upload, ImageIcon } from 'lucide-react';
 import styles from './page.module.css';
 import { api } from '@/lib/api';
@@ -10,59 +10,105 @@ interface Dish {
     name: string;
     price: number;
     category: string;
+    categoryId?: number;
     isAvailable: boolean;
     sales: number;
     description?: string;
     image?: string;
 }
 
-// 记录未保存的改动
-const categoriesDefault = ['全部'];
+// Initial fallback categories
+const DEFAULT_CATEGORIES = ['全部', '热销', '主食', '套餐', '甜点', '饮品'];
 
 export default function MenuPage() {
     const [dishes, setDishes] = useState<Dish[]>([]);
+    const [categories, setCategories] = useState<string[]>(DEFAULT_CATEGORIES);
+    const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editingDish, setEditingDish] = useState<Dish | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('全部');
-    const [categories, setCategories] = useState<string[]>(categoriesDefault);
-    const [loading, setLoading] = useState<boolean>(false);
-    const [error, setError] = useState<string | null>(null);
-    const [shopId, setShopId] = useState<string>('');
-    const [pendingEdits, setPendingEdits] = useState<Record<string, { name?: string; price?: number; category?: string }>>({});
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Form state
     const [formData, setFormData] = useState({
         name: '',
         price: '',
-        category: '热菜',
+        category: '套餐',
         description: '',
         image: ''
     });
 
-    const toggleStatus = async (id: string) => {
-        const target = dishes.find(d => d.id === id);
-        if (!target) return;
+    const fetchDishes = async () => {
+        setLoading(true);
         try {
-            await api.updateDishAvailability(id, !target.isAvailable);
-            setDishes(prev => prev.map(d =>
-                d.id === id ? { ...d, isAvailable: !d.isAvailable } : d
-            ));
-        } catch (e) {
-            alert('更新上架状态失败');
+            const [dishRes, catRes] = await Promise.all([
+                api.dishes.getMyDishes(),
+                api.dishes.getMyCategories()
+            ]);
+
+            if (dishRes.success) {
+                const mapped = dishRes.data.map((d: any) => ({
+                    id: d.dishId.toString(),
+                    name: d.name,
+                    price: d.price ?? d.basePrice ?? 0,
+                    category: d.categoryName || '其它',
+                    categoryId: d.categoryId,
+                    isAvailable: d.status === 1,
+                    sales: d.sales ?? d.monthSales ?? 0,
+                    description: d.description,
+                    image: d.imageUrl ?? d.coverImage
+                }));
+                setDishes(mapped);
+            }
+
+            if (catRes.success) {
+                const names = catRes.data.map((c: any) => c.name);
+                setCategories(['全部', ...names]);
+            }
+        } catch (err) {
+            console.error('Failed to fetch data', err);
+        } finally {
+            setLoading(false);
         }
     };
 
-    const handleDelete = (id: string) => {
+    useEffect(() => {
+        fetchDishes();
+    }, []);
+
+    const toggleStatus = async (id: string, currentStatus: boolean) => {
+        try {
+            const newStatus = currentStatus ? 0 : 1;
+            const res = await api.dishes.updateStatus(id, newStatus);
+            if (res.success) {
+                setDishes(prev => prev.map(d =>
+                    d.id === id ? { ...d, isAvailable: !currentStatus } : d
+                ));
+            }
+        } catch (err) {
+            alert('操作失败');
+        }
+    };
+
+    const handleDelete = async (id: string) => {
         if (confirm('确定删除该菜品吗？')) {
-            setDishes(prev => prev.filter(d => d.id !== id));
+            try {
+                const res = await api.dishes.deleteDish(id);
+                if (res.success) {
+                    setDishes(prev => prev.filter(d => d.id !== id));
+                }
+            } catch (err) {
+                alert('删除失败');
+            }
         }
     };
 
     const openAddModal = () => {
         setEditingDish(null);
-        setFormData({ name: '', price: '', category: '热菜', description: '', image: '' });
+        // Default to first real category if available
+        const defaultCategory = categories.length > 1 ? categories[1] : '其它';
+        setFormData({ name: '', price: '', category: defaultCategory, description: '', image: '' });
         setShowModal(true);
     };
 
@@ -78,20 +124,9 @@ export default function MenuPage() {
         setShowModal(true);
     };
 
-    // 行内编辑：记录改动并同步到列表展示
-    const setEditField = (dishId: string, field: 'name' | 'price' | 'category', value: any) => {
-        setPendingEdits(prev => ({
-            ...prev,
-            [dishId]: { ...(prev[dishId] || {}), [field]: value }
-        }));
-        setDishes(prev => prev.map(d => d.id === dishId ? { ...d, [field]: value } : d));
-    };
-
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            // In a real app, you would upload to a server here
-            // For demo, we'll use a local URL
             const reader = new FileReader();
             reader.onloadend = () => {
                 setFormData({ ...formData, image: reader.result as string });
@@ -106,110 +141,23 @@ export default function MenuPage() {
             name: formData.name,
             price: parseFloat(formData.price),
             description: formData.description,
-            image: formData.image,
-            // categoryId 需要从后端分类映射，这里暂留
-        } as any;
-        if (editingDish) {
-            try {
-                await api.updateDish(editingDish.id, payload);
-                setDishes(prev => prev.map(d =>
-                    d.id === editingDish.id
-                        ? { ...d, name: formData.name, price: parseFloat(formData.price), category: formData.category, description: formData.description, image: formData.image }
-                        : d
-                ));
-            } catch (e) {
-                alert('保存菜品失败');
-                return;
-            }
-        } else {
-            // Add new dish
-            const newDish: Dish = {
-                id: Date.now().toString(),
-                name: formData.name,
-                price: parseFloat(formData.price),
-                category: formData.category,
-                description: formData.description,
-                image: formData.image,
-                isAvailable: true,
-                sales: 0
-            };
-            setDishes(prev => [...prev, newDish]);
-        }
-        setShowModal(false);
-    };
-
-    // 保存单个菜的改动
-    const onSaveDish = async (dishId: string) => {
-        const edits = pendingEdits[dishId];
-        if (!edits || Object.keys(edits).length === 0) {
-            alert('没有改动需要保存');
-            return;
-        }
-        try {
-            await api.updateDish(dishId, edits);
-            setPendingEdits(prev => {
-                const next = { ...prev };
-                delete next[dishId];
-                return next;
-            });
-            alert('已保存');
-        } catch (e: any) {
-            alert(e.message || '保存失败');
-        }
-    };
-
-    // 保存全部改动
-    const onSaveAll = async () => {
-        const ids = Object.keys(pendingEdits);
-        if (ids.length === 0) {
-            alert('没有改动需要保存');
-            return;
-        }
-        try {
-            for (const id of ids) {
-                await api.updateDish(id, pendingEdits[id]!);
-            }
-            setPendingEdits({});
-            alert('全部改动已保存');
-        } catch (e: any) {
-            alert(e.message || '部分保存失败，请重试');
-        }
-    };
-
-    // 初始化：选择一个商家并加载其菜品
-    useEffect(() => {
-        const init = async () => {
-            setLoading(true);
-            setError(null);
-            try {
-                const page = await api.listCanteensPaged(1, 1);
-                const first = page.list?.[0];
-                const sid = String(first?.id || '');
-                setShopId(sid);
-                if (sid) {
-                    const cats = await api.getShopDishes(sid, 1, 10000);
-                    const catNames = ['全部', ...cats.map(c => String(c.name))];
-                    setCategories(catNames);
-                    const items: Dish[] = cats.flatMap(c => (c.goods || []).map(g => ({
-                        id: String(g.id),
-                        name: g.name,
-                        price: g.price,
-                        category: String(c.name),
-                        isAvailable: true,
-                        sales: (g.monthlySales as any) || 0,
-                        description: g.description,
-                        image: g.image,
-                    })));
-                    setDishes(items);
-                }
-            } catch (e: any) {
-                setError(e?.message || '加载菜品失败');
-            } finally {
-                setLoading(false);
-            }
+            imageUrl: formData.image,
+            categoryName: formData.category,
+            status: editingDish ? (editingDish.isAvailable ? 1 : 0) : 1
         };
-        init();
-    }, []);
+
+        try {
+            if (editingDish) {
+                await api.dishes.updateDish(editingDish.id, payload);
+            } else {
+                await api.dishes.addDish(payload);
+            }
+            fetchDishes();
+            setShowModal(false);
+        } catch (err) {
+            alert('保存失败');
+        }
+    };
 
     const filteredDishes = dishes.filter(dish => {
         const matchesSearch = dish.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -221,17 +169,11 @@ export default function MenuPage() {
         <div>
             <div className={styles.header}>
                 <h2 className={styles.title}>菜品管理</h2>
-                <div style={{ display: 'flex', gap: 8 }}>
-                    <button className={styles.addButton} onClick={openAddModal}>
-                        <Plus size={16} /> 新增菜品
-                    </button>
-                    <button className={styles.addButton} onClick={onSaveAll}>
-                        保存全部改动
-                    </button>
-                </div>
+                <button className={styles.addButton} onClick={openAddModal}>
+                    <Plus size={16} /> 新增菜品
+                </button>
             </div>
 
-            {/* Filters */}
             <div className={styles.filters}>
                 <div className={styles.searchBox}>
                     <Search size={18} className={styles.searchIcon} />
@@ -256,93 +198,74 @@ export default function MenuPage() {
                 </div>
             </div>
 
-            <div className={styles.tableWrapper}>
-                {error && (
-                    <div style={{ color: '#c00', padding: '0.5rem 1rem' }}>{error}</div>
-                )}
-                {loading && (
-                    <div style={{ color: '#666', padding: '0.5rem 1rem' }}>加载中...</div>
-                )}
-                <table className={styles.table}>
-                    <thead>
-                        <tr>
-                            <th style={{ width: '80px' }}>图片</th>
-                            <th>菜品名称</th>
-                            <th>分类</th>
-                            <th>价格</th>
-                            <th>销量</th>
-                            <th>状态</th>
-                            <th>操作</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredDishes.length === 0 ? (
+            {loading ? (
+                <div style={{ textAlign: 'center', padding: '3rem' }}>加载中...</div>
+            ) : (
+                <div className={styles.tableWrapper}>
+                    <table className={styles.table}>
+                        <thead>
                             <tr>
-                                <td colSpan={7} style={{ textAlign: 'center', padding: '3rem', color: '#94a3b8' }}>
-                                    暂无符合条件的菜品
-                                </td>
+                                <th style={{ width: '80px' }}>图片</th>
+                                <th>菜品名称</th>
+                                <th>分类</th>
+                                <th>价格</th>
+                                <th>销量</th>
+                                <th>状态</th>
+                                <th>操作</th>
                             </tr>
-                        ) : (
-                            filteredDishes.map(dish => (
-                                <tr key={dish.id}>
-                                    <td>
-                                        <div className={styles.dishImage}>
-                                            {dish.image ? (
-                                                <img src={dish.image} alt={dish.name} />
-                                            ) : (
-                                                <div className={styles.noImage}>
-                                                    <ImageIcon size={20} />
-                                                </div>
-                                            )}
-                                        </div>
-                                    </td>
-                                     <td>
-                                         <input
-                                             className={styles.inlineInput}
-                                             value={dish.name}
-                                             onChange={(e) => setEditField(dish.id, 'name', e.target.value)}
-                                         />
-                                         {dish.description && <div className={styles.dishDesc}>{dish.description}</div>}
-                                     </td>
-                                    <td><span className={styles.categoryBadge}>{dish.category}</span></td>
-                                     <td className={styles.price}>
-                                         ¥
-                                         <input
-                                             className={styles.inlineInput}
-                                             type="number"
-                                             step="0.01"
-                                             value={dish.price}
-                                             onChange={(e) => setEditField(dish.id, 'price', parseFloat(e.target.value || '0'))}
-                                         />
-                                     </td>
-                                    <td>{dish.sales}</td>
-                                    <td>
-                                        <button
-                                            className={`${styles.statusToggle} ${dish.isAvailable ? styles.statusOn : styles.statusOff}`}
-                                            onClick={() => toggleStatus(dish.id)}
-                                        >
-                                            {dish.isAvailable ? '上架中' : '已下架'}
-                                        </button>
-                                    </td>
-                                    <td>
-                                         <button className={styles.actionBtn} onClick={() => onSaveDish(dish.id)}>
-                                             保存
-                                         </button>
-                                         <button className={styles.actionBtn} onClick={() => openEditModal(dish)}>
-                                            <Edit2 size={14} /> 编辑
-                                        </button>
-                                        <button className={`${styles.actionBtn} ${styles.deleteBtn}`} onClick={() => handleDelete(dish.id)}>
-                                            <Trash2 size={14} /> 删除
-                                        </button>
+                        </thead>
+                        <tbody>
+                            {filteredDishes.length === 0 ? (
+                                <tr>
+                                    <td colSpan={7} style={{ textAlign: 'center', padding: '3rem', color: '#94a3b8' }}>
+                                        暂无符合条件的菜品
                                     </td>
                                 </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
-            </div>
+                            ) : (
+                                filteredDishes.map(dish => (
+                                    <tr key={dish.id}>
+                                        <td>
+                                            <div className={styles.dishImage}>
+                                                {dish.image ? (
+                                                    <img src={dish.image} alt={dish.name} />
+                                                ) : (
+                                                    <div className={styles.noImage}>
+                                                        <ImageIcon size={20} />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div className={styles.dishName}>{dish.name}</div>
+                                            {dish.description && <div className={styles.dishDesc}>{dish.description}</div>}
+                                        </td>
+                                        <td><span className={styles.categoryBadge}>{dish.category}</span></td>
+                                        <td className={styles.price}>¥{Number(dish.price).toFixed(2)}</td>
+                                        <td>{dish.sales}</td>
+                                        <td>
+                                            <button
+                                                className={`${styles.statusToggle} ${dish.isAvailable ? styles.statusOn : styles.statusOff}`}
+                                                onClick={() => toggleStatus(dish.id, dish.isAvailable)}
+                                            >
+                                                {dish.isAvailable ? '上架中' : '已下架'}
+                                            </button>
+                                        </td>
+                                        <td>
+                                            <button className={styles.actionBtn} onClick={() => openEditModal(dish)}>
+                                                <Edit2 size={14} /> 编辑
+                                            </button>
+                                            <button className={`${styles.actionBtn} ${styles.deleteBtn}`} onClick={() => handleDelete(dish.id)}>
+                                                <Trash2 size={14} /> 删除
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            )}
 
-            {/* Modal */}
             {showModal && (
                 <div className={styles.modalOverlay} onClick={() => setShowModal(false)}>
                     <div className={styles.modal} onClick={e => e.stopPropagation()}>
@@ -353,7 +276,6 @@ export default function MenuPage() {
                             </button>
                         </div>
                         <form onSubmit={handleSubmit} className={styles.form}>
-                            {/* Image Upload */}
                             <div className={styles.formGroup}>
                                 <label>菜品图片</label>
                                 <div className={styles.imageUploadArea}>

@@ -1,53 +1,100 @@
 package com.hzcu.order.common;
 
 public class ApiResponse<T> {
+    private boolean success;
+    private String message;
+    private T data;
+    private Integer code;
 
-  private String code;
-  private String message;
-  private T data;
+    public ApiResponse() {}
 
-  public ApiResponse() {
-  }
+    public ApiResponse(boolean success, String message, T data, Integer code) {
+        this.success = success;
+        this.message = message;
+        this.data = data;
+        this.code = code;
+    }
 
-  public ApiResponse(String code, String message, T data) {
-    this.code = code;
-    this.message = message;
-    this.data = data;
-  }
+    public boolean isSuccess() {
+        return success;
+    }
 
-  public static <T> ApiResponse<T> success(T data) {
-    return new ApiResponse<>("0", "OK", data);
-  }
+    public void setSuccess(boolean success) {
+        this.success = success;
+    }
 
-  public static ApiResponse<Void> success() {
-    return new ApiResponse<>("0", "OK", null);
-  }
+    public String getMessage() {
+        return message;
+    }
 
-  public static <T> ApiResponse<T> error(String code, String message) {
-    return new ApiResponse<>(code, message, null);
-  }
+    public void setMessage(String message) {
+        this.message = message;
+    }
 
-  public String getCode() {
-    return code;
-  }
+    public T getData() {
+        return data;
+    }
 
-  public void setCode(String code) {
-    this.code = code;
-  }
+    public void setData(T data) {
+        this.data = data;
+    }
 
-  public String getMessage() {
-    return message;
-  }
+    public Integer getCode() {
+        return code;
+    }
 
-  public void setMessage(String message) {
-    this.message = message;
-  }
+    public void setCode(Integer code) {
+        this.code = code;
+    }
 
-  public T getData() {
-    return data;
-  }
+    public static <T> ApiResponse<T> success(T data) {
+        return new ApiResponse<>(true, "Success", data, 200);
+    }
 
-  public void setData(T data) {
-    this.data = data;
-  }
+    public static <T> ApiResponse<T> success(String message, T data) {
+        return new ApiResponse<>(true, message, data, 200);
+    }
+
+    public static <T> ApiResponse<T> error(String message) {
+        return new ApiResponse<>(false, message, null, 500);
+    }
+
+    public static <T> ApiResponse<T> error(Integer code, String message) {
+        return new ApiResponse<>(false, message, null, code);
+    }
+
+    public static <T> ApiResponseBuilder<T> builder() {
+        return new ApiResponseBuilder<>();
+    }
+
+    public static class ApiResponseBuilder<T> {
+        private boolean success;
+        private String message;
+        private T data;
+        private Integer code;
+
+        public ApiResponseBuilder<T> success(boolean success) {
+            this.success = success;
+            return this;
+        }
+
+        public ApiResponseBuilder<T> message(String message) {
+            this.message = message;
+            return this;
+        }
+
+        public ApiResponseBuilder<T> data(T data) {
+            this.data = data;
+            return this;
+        }
+
+        public ApiResponseBuilder<T> code(Integer code) {
+            this.code = code;
+            return this;
+        }
+
+        public ApiResponse<T> build() {
+            return new ApiResponse<>(success, message, data, code);
+        }
+    }
 }

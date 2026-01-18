@@ -1,84 +1,74 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import OrderCard, { Order, OrderStatus } from '@/components/OrderCard';
-import { api, PageResult } from '@/lib/api';
 import styles from './page.module.css';
-
-// 改为从后端接口加载数据
+import { api } from '@/lib/api';
 
 export default function DashboardPage() {
-    const [orders, setOrders] = useState<Order[]>([]);
-    const [filter, setFilter] = useState<OrderStatus | 'ALL'>('ALL');
-    const [loading, setLoading] = useState<boolean>(false);
-    const [error, setError] = useState<string | null>(null);
+    const [orders, setOrders] = useState<any[]>([]);
+    const [statsOrders, setStatsOrders] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [filter, setFilter] = useState<string>('ALL');
 
-    const loadOrders = async (status?: OrderStatus) => {
+    const fetchOrders = async () => {
         setLoading(true);
-        setError(null);
         try {
-            const page: PageResult<any> = await api.getOrders(status ? { status } : undefined);
-            // 将后端订单结构规范化为前端使用的结构
-            const normalized: Order[] = (page.list || []).map((o: any) => {
-                // 后端状态: pending|preparing|ready|completed|canceled → 前端: PENDING|PROCESSING|READY|COMPLETED|CANCELLED
-                const statusMap: Record<string, OrderStatus> = {
-                    pending: 'PENDING',
-                    preparing: 'PROCESSING',
-                    ready: 'READY',
-                    completed: 'COMPLETED',
-                    canceled: 'CANCELLED',
-                };
-                const status = statusMap[String(o.status || '').toLowerCase()] || 'PENDING';
-                return {
-                    id: String(o.id),
-                    number: String(o.number || o.id),
-                    createTime: String(o.createTime || ''),
-                    status,
-                    items: Array.isArray(o.items) ? o.items : undefined,
-                    goods: Array.isArray(o.goods) ? o.goods : undefined,
-                    totalAmount: typeof o.totalAmount === 'number' ? o.totalAmount : (typeof o.totalPrice === 'number' ? o.totalPrice : 0),
-                    note: o.remark || o.note || '',
-                } as Order;
-            });
-            setOrders(normalized);
-        } catch (e: any) {
-            setError(e?.message || '加载订单失败');
+            // Fetch all orders for stats
+            const statsRes = await api.orders.getMerchantOrders({});
+            if (statsRes.success) {
+                setStatsOrders(statsRes.data);
+            }
+
+            // Fetch filtered orders for display
+            const params: any = {};
+            if (filter !== 'ALL') {
+                params.status = filter;
+            }
+            const res = await api.orders.getMerchantOrders(params);
+            if (res.success) {
+                setOrders(res.data);
+            }
+        } catch (err) {
+            console.error('Failed to fetch orders', err);
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        if (filter === 'ALL') {
-            loadOrders();
-        } else {
-            loadOrders(filter as OrderStatus);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        fetchOrders();
+        const timer = setInterval(fetchOrders, 30000);
+        return () => clearInterval(timer);
     }, [filter]);
 
-    const handleStatusChange = async (id: string, newStatus: OrderStatus) => {
+    const handleStatusChange = async (id: string, action: string) => {
         try {
-            const updated = await api.updateOrderStatus(id, newStatus);
-            setOrders(prev => prev.map(order =>
-                order.id === id ? updated : order
-            ));
-        } catch (e: any) {
-            setError(e?.message || '更新订单状态失败');
+            const res = await api.orders.updateStatus(id, action);
+            if (res.success) {
+                fetchOrders();
+            }
+        } catch (err) {
+            alert('操作失败');
         }
     };
 
-    const filteredOrders = orders.filter(o =>
-        filter === 'ALL'
-            ? o.status !== 'COMPLETED' && o.status !== 'CANCELLED' // Default view hides completed/cancelled
-            : o.status === filter
-    );
-
     const stats = {
-        pending: orders.filter(o => o.status === 'PENDING').length,
-        processing: orders.filter(o => o.status === 'PROCESSING').length,
-        ready: orders.filter(o => o.status === 'READY').length,
+        pending: statsOrders.filter(o => o.status === 'PAID').length,
+        processing: statsOrders.filter(o => o.status === 'PREPARING').length,
+        ready: statsOrders.filter(o => o.status === 'READY_FOR_PICKUP').length,
     }
+
+    const mapStatusToUI = (status: string): OrderStatus => {
+        switch (status) {
+            case 'PAID': return 'PENDING';
+            case 'PREPARING': return 'PROCESSING';
+            case 'READY_FOR_PICKUP': return 'READY';
+            case 'COMPLETED': return 'COMPLETED';
+            case 'CANCELLED': return 'CANCELLED';
+            default: return 'COMPLETED';
+        }
+    };
 
     return (
         <div className={styles.container}>
@@ -90,20 +80,20 @@ export default function DashboardPage() {
                     全部进行中
                 </button>
                 <button
-                    className={`${styles.filterBtn} ${filter === 'PENDING' ? styles.filterBtnActive : ''}`}
-                    onClick={() => setFilter('PENDING')}
+                    className={`${styles.filterBtn} ${filter === 'PAID' ? styles.filterBtnActive : ''}`}
+                    onClick={() => setFilter('PAID')}
                 >
-                    待接单 ({stats.pending})
+                    新订单 ({stats.pending})
                 </button>
                 <button
-                    className={`${styles.filterBtn} ${filter === 'PROCESSING' ? styles.filterBtnActive : ''}`}
-                    onClick={() => setFilter('PROCESSING')}
+                    className={`${styles.filterBtn} ${filter === 'PREPARING' ? styles.filterBtnActive : ''}`}
+                    onClick={() => setFilter('PREPARING')}
                 >
                     制作中 ({stats.processing})
                 </button>
                 <button
-                    className={`${styles.filterBtn} ${filter === 'READY' ? styles.filterBtnActive : ''}`}
-                    onClick={() => setFilter('READY')}
+                    className={`${styles.filterBtn} ${filter === 'READY_FOR_PICKUP' ? styles.filterBtnActive : ''}`}
+                    onClick={() => setFilter('READY_FOR_PICKUP')}
                 >
                     待取餐 ({stats.ready})
                 </button>
@@ -115,20 +105,37 @@ export default function DashboardPage() {
                 </button>
             </div>
 
-            {error && (
-                <div className={styles.emptyState} style={{ color: '#c00' }}>{error}</div>
-            )}
-            {loading ? (
-                <div className={styles.emptyState}>加载中...</div>
-            ) : filteredOrders.length === 0 ? (
+            {loading && orders.length === 0 ? (
+                <div className={styles.loading}>加载中...</div>
+            ) : orders.length === 0 ? (
                 <div className={styles.emptyState}>暂无相关订单</div>
             ) : (
                 <div className={styles.grid}>
-                    {filteredOrders.map(order => (
+                    {orders.map(order => (
                         <OrderCard
-                            key={order.id}
-                            order={order}
-                            onStatusChange={handleStatusChange}
+                            key={order.orderId}
+                            order={{
+                                id: order.orderId.toString(),
+                                number: order.pickupCode || '---',
+                                createTime: new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                                status: mapStatusToUI(order.status),
+                                items: (order.items || []).map((it: any) => ({
+                                    name: it.dishName,
+                                    quantity: it.quantity,
+                                    spec: it.specName
+                                })),
+                                totalAmount: order.totalAmount,
+                                note: order.remark
+                            }}
+                            onStatusChange={(id, status) => {
+                                let action = '';
+                                if (status === 'PROCESSING') action = 'accept';
+                                else if (status === 'CANCELLED') action = 'reject';
+                                else if (status === 'READY') action = 'finish';
+                                else if (status === 'COMPLETED') action = 'complete';
+
+                                if (action) handleStatusChange(id, action);
+                            }}
                         />
                     ))}
                 </div>

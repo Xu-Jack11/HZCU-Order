@@ -1,23 +1,26 @@
-<!--mine.wxml-->
+﻿<!--mine.wxml-->
 <view class="container">
   <!-- 用户信息 -->
   <view class="user-header">
-    <view class="user-info" bindtap="goBindPhone" wx:if="{{!isLogin}}">
+    <view class="user-info" wx:if="{{!isLogin}}">
       <image class="user-avatar" src="/images/default-avatar.png" mode="aspectFill"></image>
       <view class="user-text">
-        <text class="login-hint">点击登录</text>
+        <button class="login-btn-new" open-type="getPhoneNumber" bindgetphonenumber="onGetPhoneNumber">点击登录</button>
         <text class="login-desc">登录后享受更多服务</text>
       </view>
     </view>
     <view class="user-info" wx:else>
-      <image class="user-avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill" bindtap="goBindPhone"></image>
+      <image class="user-avatar" src="{{userInfo.avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill"></image>
       <view class="user-text">
-        <text class="user-name">{{userInfo.nickName}}</text>
-        <text class="user-phone">{{userInfo.phone}}</text>
+        <text class="user-name">{{userInfo.nickName || '微信用户'}}</text>
+        <text class="user-phone">{{userInfo.mobile || '已授权登录'}}</text>
+        <view class="user-balance" bindtap="goRecharge">
+          <text class="balance-label">余额: </text>
+          <text class="balance-value">￥{{userInfo.balance || '0.00'}}</text>
+          <text class="recharge-btn">充值</text>
+        </view>
       </view>
     </view>
-    <!-- 登录后但未绑定手机号，提供测试绑定按钮 -->
-    <button class="bind-phone-btn" wx:if="{{isLogin && !userInfo.phone}}" bindtap="goBindPhone">绑定手机号</button>
     <image class="setting-icon" src="/images/setting.png" mode="aspectFit" bindtap="goSetting"></image>
   </view>
 
@@ -63,7 +66,7 @@
     <view class="menu-item" bindtap="goCoupon">
       <image class="menu-icon" src="/images/menu/coupon.png" mode="aspectFit"></image>
       <text class="menu-text">优惠券</text>
-      <text class="menu-extra" wx:if="{{couponCount > 0}}">{{couponCount}}张可用</text>
+      <text class="menu-extra" wx:if="{{couponCount > 0}}">{{couponCount}} 张可用</text>
       <image class="arrow-right" src="/images/arrow-right.png" mode="aspectFit"></image>
     </view>
     <view class="menu-item" bindtap="goHelp">
@@ -79,6 +82,11 @@
     <view class="menu-item" bindtap="goAbout">
       <image class="menu-icon" src="/images/menu/about.png" mode="aspectFit"></image>
       <text class="menu-text">关于我们</text>
+      <image class="arrow-right" src="/images/arrow-right.png" mode="aspectFit"></image>
+    </view>
+    <view class="menu-item logout-item" bindtap="onLogout" wx:if="{{isLogin}}">
+      <image class="menu-icon" src="/images/menu/logout.png" mode="aspectFit"></image>
+      <text class="menu-text" style="color: #ff3b30;">退出登录</text>
       <image class="arrow-right" src="/images/arrow-right.png" mode="aspectFit"></image>
     </view>
   </view>

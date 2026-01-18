@@ -1,43 +1,52 @@
 package com.hzcu.order.controller;
 
-import java.util.Map;
-
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.hzcu.order.common.ApiResponse;
+import com.hzcu.order.dto.DishDTO;
+import com.hzcu.order.dto.EntityMapper;
+import com.hzcu.order.service.CanteenService;
 import com.hzcu.order.service.DishService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
-@CrossOrigin
+@RequestMapping("/api/v1/dishes")
+@Tag(name = "Dish", description = "Dish and category APIs")
 public class DishController {
 
-  private final DishService dishService;
+    @Autowired
+    private DishService dishService;
 
-  public DishController(DishService dishService) {
-    this.dishService = dishService;
-  }
+    @Autowired
+    private CanteenService canteenService;
 
-  @PutMapping("/merchant/dishes/{id}")
-  public ApiResponse<Boolean> updateDish(
-      @PathVariable("id") long id,
-      @RequestBody Map<String, Object> payload
-  ) {
-    dishService.updateDish(id, payload);
-    return ApiResponse.success(true);
-  }
+    @Autowired
+    private EntityMapper entityMapper;
 
-  @PostMapping("/merchant/dishes/{id}/availability")
-  public ApiResponse<Boolean> updateAvailability(
-      @PathVariable("id") long id,
-      @RequestParam("isAvailable") boolean isAvailable
-  ) {
-    dishService.updateAvailability(id, isAvailable);
-    return ApiResponse.success(true);
-  }
+    @GetMapping("/canteen/{canteenId}")
+    @Operation(summary = "Get dishes by canteen")
+    public ApiResponse<List<DishDTO>> getDishesByCanteen(@PathVariable Long canteenId) {
+        return canteenService.getCanteenById(canteenId)
+                .map(canteen -> {
+                    List<DishDTO> dishes = dishService.getDishesByCanteen(canteen)
+                            .stream()
+                            .map(entityMapper::toDto)
+                            .collect(Collectors.toList());
+                    return ApiResponse.success(dishes);
+                })
+                .orElse(ApiResponse.error(404, "Canteen not found"));
+    }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "Get dish by ID")
+    public ApiResponse<DishDTO> getDish(@PathVariable Long id) {
+        return dishService.getDishById(id)
+                .map(entityMapper::toDto)
+                .map(ApiResponse::success)
+                .orElse(ApiResponse.error(404, "Dish not found"));
+    }
 }

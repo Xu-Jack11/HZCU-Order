@@ -1,9 +1,9 @@
-// checkout.ts
+﻿// checkout.ts
 // 结算页面
 import { clearCartSnapshot } from '../../utils/cart';
 import { CouponItem } from '../../utils/data';
 import { clearCouponContext, getSelectedCoupon, saveSelectedCoupon, setCouponContext } from '../../utils/coupon';
-import { createOrder } from '../../utils/api';
+import { createOrder, payOrder } from '../../utils/api';
 
 // 常量定义
 const PACKING_FEE = 2;
@@ -27,7 +27,8 @@ Page({
     packingFee: 0,
     couponDiscount: 0,
     finalPrice: 0,
-    selectedCoupon: null as CouponItem | null
+    selectedCoupon: null as CouponItem | null,
+    paymentMethod: 'WECHAT' as 'WECHAT' | 'BALANCE'
   },
 
   onLoad() {
@@ -38,12 +39,24 @@ Page({
     this.syncSelectedCoupon();
   },
 
+  // 选择支付方式
+  choosePaymentMethod() {
+    const itemList = ['微信支付', '余额支付'];
+    wx.showActionSheet({
+      itemList,
+      success: (res) => {
+        const paymentMethod = res.tapIndex === 0 ? 'WECHAT' : 'BALANCE';
+        this.setData({ paymentMethod });
+      }
+    });
+  },
+
   // 计算打包费
   getPackingFee(diningMode: string): number {
     return diningMode === DINING_MODES.TAKEAWAY ? PACKING_FEE : 0;
   },
 
-  // 计算总价
+  // 计算总格
   calculateFinalPrice() {
     const packingFee = this.getPackingFee(this.data.diningMode);
     const couponDiscount = this.getCouponDiscount(packingFee);
@@ -131,7 +144,7 @@ Page({
     });
   },
 
-  // 输入桌号
+  // 输入桌格
   onTableNoInput(e: any) {
     this.setData({
       tableNo: e.detail.value
@@ -169,48 +182,53 @@ Page({
     });
   },
 
-  // 提交订单
+  // 提交订单并支付
   async submitOrder() {
-    if (this.data.diningMode === DINING_MODES.DINE_IN && !this.data.tableNo) {
-      wx.showToast({
-        title: '请输入桌号',
-        icon: 'none'
-      });
-      return;
-    }
-
     wx.showLoading({ title: '提交中...' });
 
     try {
-      await createOrder({
+      // 1. 创建订单
+      const orderResult = await createOrder({
         shopId: this.data.shopInfo?.id || 0,
         cartList: this.data.cartList,
         totalPrice: this.data.finalPrice,
-        diningMode: this.data.diningMode,
+        diningMode: this.data.diningMode === 'dine-in' ? 'DINE_IN' : 'TAKEAWAY',
+        paymentMethod: this.data.paymentMethod,
         tableNo: this.data.tableNo,
         pickupTime: this.data.pickupTime,
         remark: this.data.remark
       });
+
+      const orderId = orderResult.orderId;
+
+      // 2. 发起支付
+      wx.setNavigationBarTitle({ title: '正在支付...' });
+      const payResult = await payOrder(orderId, this.data.paymentMethod);
+
+      // 3. 模拟微信支付成功 (在真实环境下对于 WECHAT 需调用 wx.requestPayment(payParams))
+      // 目前后端在 createPayment 时会自动 processPayment 并更新状态
+
+      wx.showToast({
+        title: '支付完成',
+        icon: 'success'
+      });
+
+      // 清理工作
       wx.removeStorageSync('cartData');
       clearCartSnapshot(this.data.shopInfo?.id || 0);
       saveSelectedCoupon(null);
       clearCouponContext();
 
-      wx.showToast({
-        title: '下单成功',
-        icon: 'success',
-        duration: 1500,
-        success: () => {
-          setTimeout(() => {
-            wx.switchTab({
-              url: '/pages/order/order'
-            });
-          }, 1500);
-        }
-      });
+      setTimeout(() => {
+        wx.switchTab({
+          url: '/pages/order/order'
+        });
+      }, 1500);
+
     } catch (error) {
+      console.error(error);
       wx.showToast({
-        title: '下单失败',
+        title: '操作失败',
         icon: 'none'
       });
     } finally {

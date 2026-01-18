@@ -1,69 +1,54 @@
 package com.hzcu.order.controller;
 
-import java.util.HashMap;
-import java.util.List;
+import java.math.BigDecimal;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.hzcu.order.data.DataStore;
-import com.hzcu.order.model.UserProfile;
+import com.hzcu.order.common.ApiResponse;
+import com.hzcu.order.entity.User;
+import com.hzcu.order.security.UserPrincipal;
+import com.hzcu.order.service.UserService;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
+@RequestMapping("/api/v1/users")
+@Tag(name = "User", description = "User profile and balance APIs")
+@SecurityRequirement(name = "bearerAuth")
 public class UserController {
 
-  private final DataStore dataStore;
+    @Autowired
+    private UserService userService;
 
-  public UserController(DataStore dataStore) {
-    this.dataStore = dataStore;
-  }
-
-  @PostMapping("/users/login")
-  public Map<String, Object> login(@RequestBody Map<String, String> body) {
-    Map<String, Object> resp = new HashMap<>();
-    try {
-      String phone = body.get("phone");
-      String nickname = body.get("nickname");
-      String avatar = body.get("avatar");
-      if (phone == null || phone.isBlank()) {
-        resp.put("code", 400);
-        resp.put("message", "phone is required");
-        resp.put("data", null);
-        return resp;
-      }
-      UserProfile user = dataStore.upsertUserByPhone(phone, nickname != null ? nickname : phone, avatar);
-      resp.put("code", 0);
-      resp.put("message", "ok");
-      resp.put("data", user);
-      return resp;
-    } catch (Exception e) {
-      resp.put("code", 500);
-      resp.put("message", e.getMessage());
-      resp.put("data", null);
-      return resp;
+    @GetMapping("/me")
+    @Operation(summary = "Get current user profile")
+    public ApiResponse<User> getCurrentUser(@AuthenticationPrincipal UserPrincipal currentUser) {
+        return userService.findById(currentUser.getId())
+                .map(ApiResponse::success)
+                .orElse(ApiResponse.error(404, "User not found"));
     }
-  }
 
-  @GetMapping("/users")
-  public Map<String, Object> listUsers() {
-    Map<String, Object> resp = new HashMap<>();
-    try {
-      List<UserProfile> list = dataStore.getUsers();
-      Map<String, Object> data = new HashMap<>();
-      data.put("list", list);
-      data.put("total", list.size());
-      resp.put("code", 0);
-      resp.put("message", "ok");
-      resp.put("data", data);
-      return resp;
-    } catch (Exception e) {
-      resp.put("code", 500);
-      resp.put("message", e.getMessage());
-      resp.put("data", null);
-      return resp;
+    @PostMapping("/recharge")
+    @Operation(summary = "Recharge user balance")
+    public ApiResponse<User> recharge(
+            @AuthenticationPrincipal UserPrincipal currentUser,
+            @RequestBody Map<String, BigDecimal> data) {
+        
+        BigDecimal amount = data.get("amount");
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            return ApiResponse.error(400, "Invalid recharge amount");
+        }
+        
+        User user = userService.recharge(currentUser.getId(), amount);
+        return ApiResponse.success(user);
     }
-  }
 }

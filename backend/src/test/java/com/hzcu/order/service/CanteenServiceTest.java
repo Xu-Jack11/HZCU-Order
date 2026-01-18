@@ -1,86 +1,65 @@
 package com.hzcu.order.service;
 
-import com.hzcu.order.common.PageResult;
-import com.hzcu.order.data.DataStore;
-import com.hzcu.order.model.Shop;
-import com.hzcu.order.repository.DishJdbcRepository;
-import com.hzcu.order.repository.ShopJdbcRepository;
+import com.hzcu.order.entity.Canteen;
+import com.hzcu.order.repository.CanteenRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.ObjectProvider;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class CanteenServiceTest {
-    private CanteenService service;
+
+    @Mock
+    private CanteenRepository canteenRepository;
+
+    @InjectMocks
+    private CanteenService canteenService;
 
     @BeforeEach
     void setUp() {
-        DataStore dataStore = new DataStore();
-        // 提供一个简单的 ObjectProvider 桩实现，避免 Mockito 依赖
-        ObjectProvider<ShopJdbcRepository> shopProvider = new ObjectProvider<ShopJdbcRepository>() {
-            @Override public ShopJdbcRepository getObject(Object... args) { return null; }
-            @Override public ShopJdbcRepository getIfAvailable() { return null; }
-            @Override public ShopJdbcRepository getIfUnique() { return null; }
-            @Override public ShopJdbcRepository getObject() { return null; }
-        };
-        // 该测试不调用菜品查询逻辑，传入 null 安全占位的 DishJdbcRepository
-        DishJdbcRepository dishRepo = new DishJdbcRepository(null);
-        service = new CanteenService(dataStore, shopProvider, dishRepo);
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test
-    void 查询食堂分页返回结构正常() {
-        PageResult<Shop> result = service.queryCanteens(1, 20, null, null, null);
-        assertNotNull(result);
-        assertNotNull(result.getList());
-        assertTrue(result.getTotal() >= 0);
+    void getActiveCanteens_returnsOnlyActive() {
+        Canteen c1 = Canteen.builder().name("Canteen 1").status(1).build();
+        Canteen c2 = Canteen.builder().name("Canteen 2").status(1).build();
+        when(canteenRepository.findByStatusOrderBySortOrderAsc(1)).thenReturn(Arrays.asList(c1, c2));
+
+        List<Canteen> active = canteenService.getActiveCanteens();
+
+        assertEquals(2, active.size());
+        verify(canteenRepository, times(1)).findByStatusOrderBySortOrderAsc(1);
     }
 
     @Test
-    void 查不到食堂时_getShop抛出404() {
-        // provider 返回 null，按实现将直接抛出 NOT_FOUND
-        assertThrows(org.springframework.web.server.ResponseStatusException.class, () -> service.getShop(123L));
+    void getCanteenById_returnsCanteen() {
+        Canteen canteen = Canteen.builder().canteenId(1L).name("Test Canteen").build();
+        when(canteenRepository.findById(1L)).thenReturn(Optional.of(canteen));
+
+        Optional<Canteen> result = canteenService.getCanteenById(1L);
+
+        assertTrue(result.isPresent());
+        assertEquals("Test Canteen", result.get().getName());
     }
 
     @Test
-    void 过滤与排序_按关键词和hot排序并分页() {
-        // 构造一个返回固定数据的仓储桩
-        java.util.List<Shop> all = new java.util.ArrayList<>();
-        all.add(buildShop(1L, "A", 4.0, 10, "1.5km", java.util.List.of("noodles")));
-        all.add(buildShop(2L, "B", 4.8, 50, "0.8km", java.util.List.of("spicy")));
-        all.add(buildShop(3L, "C", 4.6, 30, "2.0km", java.util.List.of("spicy-special")));
+    void saveCanteen_callsRepository() {
+        Canteen canteen = Canteen.builder().name("New Canteen").build();
+        when(canteenRepository.save(any(Canteen.class))).thenReturn(canteen);
 
-        ShopJdbcRepository stubRepo = new ShopJdbcRepository(null) {
-            @Override public java.util.List<Shop> findAll() { return all; }
-            @Override public Shop findById(long id) { return all.stream().filter(s -> s.getId()==id).findFirst().orElse(null); }
-        };
+        Canteen saved = canteenService.saveCanteen(canteen);
 
-        ObjectProvider<ShopJdbcRepository> provider = new ObjectProvider<ShopJdbcRepository>() {
-            @Override public ShopJdbcRepository getObject(Object... args) { return stubRepo; }
-            @Override public ShopJdbcRepository getIfAvailable() { return stubRepo; }
-            @Override public ShopJdbcRepository getIfUnique() { return stubRepo; }
-            @Override public ShopJdbcRepository getObject() { return stubRepo; }
-        };
-
-        CanteenService svc = new CanteenService(new DataStore(), provider, new DishJdbcRepository(null));
-        // 关键词 spicy 命中 id=2,3；hot 按月售降序应为 [2,3]
-        PageResult<Shop> page = svc.queryCanteens(1, 2, "spicy", null, "hot");
-        assertEquals(2, page.getTotal());
-        assertEquals(2, page.getList().size());
-        assertEquals(2L, page.getList().get(0).getId());
-        assertEquals(3L, page.getList().get(1).getId());
-    }
-
-    private static Shop buildShop(long id, String name, double rating, int monthly, String distance, java.util.List<String> tags) {
-        Shop s = new Shop();
-        s.setId(id);
-        s.setName(name);
-        s.setRating(rating);
-        s.setMonthlySales(monthly);
-        s.setDistance(distance);
-        s.setTags(tags);
-        s.setCategoryIds(java.util.List.of());
-        return s;
+        assertNotNull(saved);
+        assertEquals("New Canteen", saved.getName());
+        verify(canteenRepository).save(any(Canteen.class));
     }
 }

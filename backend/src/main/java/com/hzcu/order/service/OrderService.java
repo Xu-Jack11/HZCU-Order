@@ -2,151 +2,144 @@ package com.hzcu.order.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Locale;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
-import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.transaction.annotation.Transactional;
 
-import com.hzcu.order.common.PageResult;
-import com.hzcu.order.data.DataStore;
-import com.hzcu.order.dto.CreateOrderRequest;
-import com.hzcu.order.model.Order;
-import com.hzcu.order.model.OrderGoods;
-import com.hzcu.order.model.Shop;
-import com.hzcu.order.repository.OrderJdbcRepository;
+import com.hzcu.order.entity.Canteen;
+import com.hzcu.order.entity.Order;
+import com.hzcu.order.entity.OrderItem;
+import com.hzcu.order.entity.OrderStatusLog;
+import com.hzcu.order.entity.User;
+import com.hzcu.order.repository.DishRepository;
+import com.hzcu.order.repository.OrderItemRepository;
+import com.hzcu.order.repository.OrderRepository;
+import com.hzcu.order.repository.OrderStatusLogRepository;
 
 @Service
 public class OrderService {
 
-  private final DataStore dataStore;
-  private final OrderJdbcRepository orderRepo;
+    @Autowired
+    private OrderRepository orderRepository;
 
-  public OrderService(DataStore dataStore, OrderJdbcRepository orderRepo) {
-    this.dataStore = dataStore;
-    this.orderRepo = orderRepo;
-  }
+    @Autowired
+    private OrderItemRepository orderItemRepository;
 
-  public PageResult<Order> listOrders(String status, int page, int pageSize) {
-    // Switch to DB repository
-    List<Order> paged = orderRepo.findAll(status, page, pageSize);
-    int total = orderRepo.count(status);
-    return new PageResult<>(paged, total);
-  }
+    @Autowired
+    private OrderStatusLogRepository orderStatusLogRepository;
 
-  public Order createOrder(CreateOrderRequest request) {
-    Shop shop = dataStore.findShop(request.getShopId())
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "canteen not found"));
+    @Autowired
+    private DishRepository dishRepository;
 
-    List<OrderGoods> goods = request.getCartList().stream()
-        .map(item -> new OrderGoods(
-            item.getId(),
-            item.getName(),
-            item.getImage(),
-            item.getPrice(),
-            item.getCount()
-        ))
-        .collect(Collectors.toList());
-    int totalCount = goods.stream().mapToInt(OrderGoods::getCount).sum();
+    @Autowired
+    private NotificationService notificationService;
 
-    Order order = new Order();
-    order.setShopId(shop.getId());
-    order.setShopName(shop.getName());
-    order.setShopLogo(shop.getLogo());
-    order.setGoods(goods);
-    order.setTotalCount(totalCount);
-    order.setTotalPrice(request.getTotalPrice());
-    order.setStatus("pending");
-    order.setStatusText(resolveStatusText("pending"));
-    order.setCreateTime(LocalDateTime.now().format(dataStore.getFormatter()));
-    order.setDiningMode(request.getDiningMode());
-    order.setTableNo(request.getTableNo());
-    order.setPickupTime(request.getPickupTime());
-    order.setRemark(request.getRemark());
+    @Transactional
+    public Order createOrder(Order order, List<OrderItem> items) {
+        order.setOrderNo(generateOrderNo());
+        order.setStatus("PENDING_PAYMENT");
+        order.setCreatedAt(LocalDateTime.now());
 
-    // Save to DB instead of memory
-    return orderRepo.create(order);
-  }
+        // Prevent cascade saving of items with null order_id
+        order.setItems(null);
 
-  public Order cancel(long orderId) {
-    Order order = orderRepo.findById(orderId);
-    if (order == null) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "order not found");
+        Order savedOrder = orderRepository.save(order);
+
+        for (OrderItem item : items) {
+            item.setOrder(savedOrder);
+            
+            // 确保菜品名称不为null，如果为null则通过dish_id查询
+            String dishName = null;
+            if (item.getDish() != null && item.getDish().getName() != null) {
+                dishName = item.getDish().getName();
+            } else if (item.getDish() != null && item.getDish().getDishId() != null) {
+                // 如果name为null但dishId存在，从数据库查询完整的dish信息
+                Optional<com.hzcu.order.entity.Dish> dishOpt = dishRepository.findById(item.getDish().getDishId());
+                if (dishOpt.isPresent()) {
+                    dishName = dishOpt.get().getName();
+                    item.setDish(dishOpt.get()); // 更新为完整的dish对象
+                }
+            }
+            item.setDishName(dishName); // 设置菜品名称快照
+            
+            if (item.getTotalPrice() == null) {
+                // simple calc fallback
+                item.setTotalPrice(item.getUnitPrice().multiply(new java.math.BigDecimal(item.getQuantity())));
+            }
+            orderItemRepository.save(item);
+        }
+        savedOrder.setItems(items); // Set back for return
+
+        logStatusChange(savedOrder, null, "PENDING_PAYMENT", "SYSTEM", 0L, "Order created");
+        return savedOrder;
     }
-    if ("completed".equalsIgnoreCase(order.getStatus()) || "canceled".equalsIgnoreCase(order.getStatus())) {
-      return order;
-    }
-    String nextStatus = "canceled";
-    String nextText = resolveStatusText(nextStatus);
-    orderRepo.updateStatus(orderId, nextStatus, nextText);
-    order.setStatus(nextStatus);
-    order.setStatusText(nextText);
-    return order;
-  }
 
-  public Order pay(long orderId) {
-    Order order = orderRepo.findById(orderId);
-    if (order == null) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "order not found");
+    public List<Order> getOrdersByUser(User user) {
+        return orderRepository.findByUserOrderByCreatedAtDesc(user);
     }
-    if ("pending".equalsIgnoreCase(order.getStatus())) {
-      String nextStatus = "preparing";
-      String nextText = resolveStatusText(nextStatus);
-      orderRepo.updateStatus(orderId, nextStatus, nextText);
-      order.setStatus(nextStatus);
-      order.setStatusText(nextText);
-    }
-    return order;
-  }
 
-  public Order complete(long orderId) {
-    Order order = orderRepo.findById(orderId);
-    if (order == null) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "order not found");
+    public List<Order> getOrdersByUserAndStatus(User user, String status) {
+        return orderRepository.findByUserAndStatusOrderByCreatedAtDesc(user, status);
     }
-    String nextStatus = "completed";
-    String nextText = resolveStatusText(nextStatus);
-    orderRepo.updateStatus(orderId, nextStatus, nextText);
-    order.setStatus(nextStatus);
-    order.setStatusText(nextText);
-    return order;
-  }
 
-  public Order ready(long orderId) {
-    Order order = orderRepo.findById(orderId);
-    if (order == null) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "order not found");
+    public List<Order> getOrdersByUserAndStatuses(User user, List<String> statuses) {
+        return orderRepository.findByUserAndStatusInOrderByCreatedAtDesc(user, statuses);
     }
-    String nextStatus = "ready";
-    String nextText = resolveStatusText(nextStatus);
-    orderRepo.updateStatus(orderId, nextStatus, nextText);
-    order.setStatus(nextStatus);
-    order.setStatusText(nextText);
-    return order;
-  }
 
-  // Deprecated: switched to JDBC repository for persistence
-  // private Order findOrder(long orderId) { ... }
+    public List<Order> getOrdersByCanteen(Canteen canteen) {
+        return orderRepository.findByCanteenOrderByCreatedAtDesc(canteen);
+    }
 
-  private String resolveStatusText(String status) {
-    if (!StringUtils.hasText(status)) {
-      return "";
+    public List<Order> getOrdersByCanteenAndStatus(Canteen canteen, String status) {
+        return orderRepository.findByCanteenAndStatus(canteen, status);
     }
-    switch (status.toLowerCase(Locale.ROOT)) {
-      case "pending":
-        return "待付款";
-      case "preparing":
-        return "制作中";
-      case "ready":
-        return "待取餐";
-      case "completed":
-        return "已完成";
-      case "canceled":
-        return "已取消";
-      default:
-        return status;
+
+    public Optional<Order> getOrderById(Long id) {
+        return orderRepository.findById(id);
     }
-  }
+
+    @Transactional
+    public void updateOrderStatus(Order order, String newStatus, String operatorType, Long operatorId, String remark) {
+        String fromStatus = order.getStatus();
+        order.setStatus(newStatus);
+
+        // Assign pickup code when paid
+        if ("PAID".equals(newStatus) && (order.getPickupCode() == null || order.getPickupCode().isEmpty())) {
+            order.setPickupCode(generatePickupCode(order.getCanteen()));
+        }
+
+        orderRepository.save(order);
+
+        logStatusChange(order, fromStatus, newStatus, operatorType, operatorId, remark);
+
+        // Notify user
+        notificationService.sendOrderStatusNotification(order.getUser().getUserId(), newStatus, order.getOrderNo());
+    }
+
+    private String generatePickupCode(Canteen canteen) {
+        Long maxCode = orderRepository.findMaxPickupCodeByCanteen(canteen);
+        if (maxCode == null) {
+            return "1001";
+        }
+        return String.valueOf(maxCode + 1);
+    }
+
+    private void logStatusChange(Order order, String fromStatus, String toStatus, String operatorType, Long operatorId,
+            String remark) {
+        OrderStatusLog log = OrderStatusLog.builder()
+                .order(order)
+                .fromStatus(fromStatus)
+                .toStatus(toStatus)
+                .operatorType(operatorType)
+                .operatorId(operatorId)
+                .remark(remark)
+                .build();
+        orderStatusLogRepository.save(log);
+    }
+
+    private String generateOrderNo() {
+        return "ORD" + LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS"));
+    }
 }

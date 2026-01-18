@@ -21,6 +21,7 @@ interface OrderItem {
   status: string;
   statusText: string;
   createTime: string;
+  pickupCode?: string;
 }
 
 const PAGE_SIZE = 6;
@@ -125,7 +126,7 @@ Page({
     if (!order) return;
     wx.showModal({
       title: '订单详情',
-      content: `商家：${order.shopName}\n金额：¥${order.totalPrice}\n状态：${order.statusText}`,
+      content: `商家：${order.shopName}\n取餐码：${order.pickupCode || '--'}\n金额：¥${order.totalPrice}\n状态：${order.statusText}`,
       showCancel: false
     });
   },
@@ -155,6 +156,32 @@ Page({
           } catch (error) {
             wx.showToast({
               title: '取消失败',
+              icon: 'none'
+            });
+          }
+        }
+      }
+    });
+  },
+
+  // 取消订单
+  cancelOrder(e: any) {
+    const orderId = e.currentTarget.dataset.id;
+    wx.showModal({
+      title: '提示',
+      content: '确定要取消该订单吗？',
+      success: async (res) => {
+        if (res.confirm) {
+          try {
+            await cancelOrder(orderId);
+            wx.showToast({
+              title: '订单已取消',
+              icon: 'success'
+            });
+            this.refreshList();
+          } catch (error) {
+            wx.showToast({
+              title: '操作失败',
               icon: 'none'
             });
           }

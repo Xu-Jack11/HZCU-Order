@@ -1,89 +1,72 @@
 package com.hzcu.order.controller;
 
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.hzcu.order.common.ApiResponse;
-import com.hzcu.order.common.PageResult;
-import com.hzcu.order.data.DataStore;
-import com.hzcu.order.dto.ShopCreateRequest;
-import com.hzcu.order.model.Comment;
-import com.hzcu.order.model.DishCategory;
-import com.hzcu.order.model.HomeFeed;
-import com.hzcu.order.model.Shop;
+import com.hzcu.order.dto.CanteenDTO;
+import com.hzcu.order.dto.EntityMapper;
 import com.hzcu.order.service.CanteenService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
-@CrossOrigin
+@RequestMapping("/api/v1/canteens")
+@Tag(name = "Canteen", description = "Canteen management APIs")
 public class CanteenController {
 
-  private final CanteenService canteenService;
-  private final DataStore dataStore;
-  private static final Logger log = LoggerFactory.getLogger(CanteenController.class);
+    @Autowired
+    private CanteenService canteenService;
 
-  public CanteenController(CanteenService canteenService, DataStore dataStore) {
-    this.canteenService = canteenService;
-    this.dataStore = dataStore;
-  }
+    @Autowired
+    private EntityMapper entityMapper;
 
-  @GetMapping("/home/feed")
-  public ApiResponse<HomeFeed> homeFeed() {
-    return ApiResponse.success(canteenService.getHomeFeed());
-  }
-
-  @PostMapping("/canteens")
-  public ApiResponse<Shop> createCanteen(@Validated @org.springframework.web.bind.annotation.RequestBody ShopCreateRequest req) {
-    Shop created = canteenService.createShop(req.getName(), req.getLogo(), req.getRating());
-    return ApiResponse.success(created);
-  }
-
-  @GetMapping("/canteens")
-    public ApiResponse<PageResult<Shop>> listCanteens(
-      @RequestParam(name = "page", defaultValue = "1") int page,
-      @RequestParam(name = "pageSize", defaultValue = "20") int pageSize,
-      @RequestParam(name = "keyword", required = false) String keyword,
-      @RequestParam(name = "categoryId", required = false) Integer categoryId,
-      @RequestParam(name = "sort", required = false) String sort) {
-    try {
-      int currentPage = Math.max(page, 1);
-      int size = Math.max(pageSize, 1);
-      PageResult<Shop> result = canteenService.queryCanteens(currentPage, size, keyword, categoryId, sort);
-      return ApiResponse.success(result);
-    } catch (Exception e) {
-      // 兜底：记录异常并返回全部示例数据，避免前端空白
-      log.error("/canteens error", e);
-      List<Shop> all = dataStore.getShops();
-      PageResult<Shop> fallback = new PageResult<>(all, all.size());
-      return ApiResponse.success(fallback);
+    @GetMapping
+    @Operation(summary = "Get all active canteens")
+    public ApiResponse<List<CanteenDTO>> getCanteens() {
+        List<CanteenDTO> canteens = canteenService.getActiveCanteens()
+                .stream()
+                .map(entityMapper::toDto)
+                .collect(Collectors.toList());
+        return ApiResponse.success(canteens);
     }
-  }
 
-  @GetMapping("/health")
-  public ApiResponse<String> health() {
-    return ApiResponse.success("ok");
-  }
+    @Autowired
+    private com.hzcu.order.service.DishService dishService;
 
-  @GetMapping("/canteens/{id}")
-  public ApiResponse<Shop> getCanteen(@PathVariable("id") long id) {
-    return ApiResponse.success(canteenService.getShop(id));
-  }
+    @GetMapping("/{id}")
+    @Operation(summary = "Get canteen by ID")
+    public ApiResponse<CanteenDTO> getCanteen(@PathVariable Long id) {
+        return canteenService.getCanteenById(id)
+                .map(entityMapper::toDto)
+                .map(ApiResponse::success)
+                .orElse(ApiResponse.error(404, "Canteen not found"));
+    }
 
-  @GetMapping("/canteens/{id}/dishes")
-  public ApiResponse<List<DishCategory>> getCanteenDishes(@PathVariable("id") long id) {
-    return ApiResponse.success(canteenService.getDishCategories(id));
-  }
+    @GetMapping("/{id}/categories")
+    @Operation(summary = "Get canteen categories with dishes")
+    public ApiResponse<List<com.hzcu.order.dto.DishCategoryDTO>> getCanteenCategories(@PathVariable Long id) {
+        return canteenService.getCanteenById(id)
+                .map(canteen -> {
+                    List<com.hzcu.order.entity.DishCategory> categories = dishService.getCategoriesByCanteen(canteen);
+                    List<com.hzcu.order.entity.Dish> dishes = dishService.getDishesByCanteen(canteen);
 
-  @GetMapping("/shops/{id}/comments")
-  public ApiResponse<List<Comment>> getComments(@PathVariable("id") long id) {
-    return ApiResponse.success(canteenService.getComments(id));
-  }
+                    List<com.hzcu.order.dto.DishCategoryDTO> categoryDTOs = categories.stream()
+                            .map(entityMapper::toDto)
+                            .collect(Collectors.toList());
+
+                    java.util.Map<Long, List<com.hzcu.order.dto.DishDTO>> dishesByCategoryId = dishes.stream()
+                            .map(entityMapper::toDto)
+                            .collect(Collectors.groupingBy(com.hzcu.order.dto.DishDTO::getCategoryId));
+
+                    for (com.hzcu.order.dto.DishCategoryDTO catDto : categoryDTOs) {
+                        catDto.setDishes(dishesByCategoryId.getOrDefault(catDto.getId(), new java.util.ArrayList<>()));
+                    }
+
+                    return ApiResponse.success(categoryDTOs);
+                })
+                .orElse(ApiResponse.error(404, "Canteen not found"));
+    }
 }
